@@ -1,20 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Trash2, Edit, RefreshCw } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, RefreshCw, UserCheck, UserX, User as UserIcon } from 'lucide-react';
 import type { Asset, AssetCreate } from '../types/asset';
+import type { Employee } from '../types/employee';
 import { assetService } from '../services/assetService';
+import { employeeService } from '../services/employeeService';
+import { assetAssignmentService } from '../services/assetAssignmentService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
 
 export const AssetsPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Modal State
+  // Asset CRUD Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Assign Asset Modal State
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedAssetForAssign, setSelectedAssetForAssign] = useState<Asset | null>(null);
+  const [assignFormData, setAssignFormData] = useState({
+    employee_id: 0,
+    condition_on_assignment: 'Good',
+    remarks: ''
+  });
+
+  // Return Asset Modal State
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [selectedAssetForReturn, setSelectedAssetForReturn] = useState<Asset | null>(null);
+  const [returnFormData, setReturnFormData] = useState({
+    condition_on_return: 'Good',
+    status_on_return: 'Available',
+    remarks: ''
+  });
 
   const initialFormState: AssetCreate = {
     asset_code: '',
@@ -32,8 +54,12 @@ export const AssetsPage: React.FC = () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const data = await assetService.getAssets(searchTerm);
-      setAssets(data);
+      const [assetData, empData] = await Promise.all([
+        assetService.getAssets(searchTerm),
+        employeeService.getEmployees().catch(() => [])
+      ]);
+      setAssets(assetData);
+      setEmployees(empData);
     } catch (err) {
       console.error("Error fetching assets:", err);
     } finally {
@@ -109,6 +135,77 @@ export const AssetsPage: React.FC = () => {
     }
   };
 
+  // Open Assign Modal
+  const handleOpenAssignModal = (asset: Asset) => {
+    setSelectedAssetForAssign(asset);
+    setAssignFormData({
+      employee_id: employees.length > 0 ? employees[0].employee_id : 0,
+      condition_on_assignment: asset.condition || 'Good',
+      remarks: ''
+    });
+    setFormError(null);
+    setIsAssignModalOpen(true);
+  };
+
+  // Submit Assign Asset Form
+  const handleAssignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAssetForAssign || !assignFormData.employee_id) return;
+
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await assetAssignmentService.assignAsset({
+        asset_id: selectedAssetForAssign.asset_id,
+        employee_id: assignFormData.employee_id,
+        condition_on_assignment: assignFormData.condition_on_assignment,
+        remarks: assignFormData.remarks
+      });
+      setIsAssignModalOpen(false);
+      fetchAssets();
+    } catch (err: any) {
+      console.error("Failed to assign asset:", err);
+      setFormError(err.response?.data?.detail || "Failed to assign asset to employee.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open Return Modal
+  const handleOpenReturnModal = (asset: Asset) => {
+    setSelectedAssetForReturn(asset);
+    setReturnFormData({
+      condition_on_return: asset.condition || 'Good',
+      status_on_return: 'Available',
+      remarks: ''
+    });
+    setFormError(null);
+    setIsReturnModalOpen(true);
+  };
+
+  // Submit Return Asset Form
+  const handleReturnSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAssetForReturn || !selectedAssetForReturn.assigned_to) return;
+
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await assetAssignmentService.returnAsset(selectedAssetForReturn.assigned_to.assignment_id, {
+        condition_on_return: returnFormData.condition_on_return,
+        status_on_return: returnFormData.status_on_return,
+        remarks: returnFormData.remarks
+      });
+      setIsReturnModalOpen(false);
+      fetchAssets();
+    } catch (err: any) {
+      console.error("Failed to return asset:", err);
+      setFormError(err.response?.data?.detail || "Failed to return asset.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Available': return 'badge-available';
@@ -153,6 +250,7 @@ export const AssetsPage: React.FC = () => {
                 <th>Code</th>
                 <th>Asset Name</th>
                 <th>Serial No.</th>
+                <th>Belongs To (Employee)</th>
                 <th>Price ($)</th>
                 <th>Condition</th>
                 <th>Status</th>
@@ -162,7 +260,7 @@ export const AssetsPage: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
                     Fetching asset records from database...
                   </td>
                 </tr>
@@ -172,6 +270,21 @@ export const AssetsPage: React.FC = () => {
                     <td style={{ fontWeight: 700, color: '#818cf8' }}>{asset.asset_code}</td>
                     <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{asset.asset_name}</td>
                     <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{asset.serial_number || '-'}</td>
+                    
+                    {/* Belongs To Column */}
+                    <td>
+                      {asset.assigned_to ? (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.25rem 0.6rem', background: 'rgba(99, 102, 241, 0.12)', border: '1px solid rgba(99, 102, 241, 0.25)', borderRadius: '6px', fontSize: '0.825rem', color: '#818cf8', fontWeight: 600 }}>
+                          <UserIcon size={13} />
+                          {asset.assigned_to.employee_name} ({asset.assigned_to.employee_code})
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', italic: 'true' }}>
+                          Unassigned (In Storage)
+                        </span>
+                      )}
+                    </td>
+
                     <td style={{ fontWeight: 600 }}>${asset.purchase_price != null ? Number(asset.purchase_price).toFixed(2) : '0.00'}</td>
                     <td>
                       <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{asset.condition || 'Good'}</span>
@@ -182,7 +295,31 @@ export const AssetsPage: React.FC = () => {
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
+                        {/* Assign Button if Available */}
+                        {asset.status === 'Available' && (
+                          <button
+                            onClick={() => handleOpenAssignModal(asset)}
+                            className="btn btn-secondary"
+                            style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}
+                            title="Assign to Employee"
+                          >
+                            <UserCheck size={13} /> Assign
+                          </button>
+                        )}
+
+                        {/* Return Button if Assigned */}
+                        {asset.status === 'Assigned' && (
+                          <button
+                            onClick={() => handleOpenReturnModal(asset)}
+                            className="btn btn-secondary"
+                            style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }}
+                            title="Return Asset"
+                          >
+                            <UserX size={13} /> Return
+                          </button>
+                        )}
+
                         <button onClick={() => handleOpenEditModal(asset)} className="btn btn-secondary" style={{ padding: '0.35rem 0.6rem' }}><Edit size={14} /></button>
                         <button onClick={() => handleDelete(asset.asset_id)} className="btn btn-danger" style={{ padding: '0.35rem 0.6rem' }}><Trash2 size={14} /></button>
                       </div>
@@ -191,7 +328,7 @@ export const AssetsPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
                     No assets found matching your query.
                   </td>
                 </tr>
@@ -306,6 +443,142 @@ export const AssetsPage: React.FC = () => {
             </button>
             <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? "Saving..." : editingAsset ? "Update Asset" : "Create Asset"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Assign Asset Modal */}
+      <Modal
+        isOpen={isAssignModalOpen}
+        onClose={() => setIsAssignModalOpen(false)}
+        title={`Assign Asset: ${selectedAssetForAssign?.asset_name} (${selectedAssetForAssign?.asset_code})`}
+      >
+        <form onSubmit={handleAssignSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {formError && (
+            <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.85rem' }}>
+              {formError}
+            </div>
+          )}
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Select Employee *</label>
+            <select
+              required
+              className="input-control"
+              value={assignFormData.employee_id}
+              onChange={(e) => setAssignFormData({ ...assignFormData, employee_id: parseInt(e.target.value) })}
+            >
+              {employees.length > 0 ? (
+                employees.map((emp) => (
+                  <option key={emp.employee_id} value={emp.employee_id}>
+                    {emp.employee_name} ({emp.employee_code}) - {emp.position || 'Staff'}
+                  </option>
+                ))
+              ) : (
+                <option value={0}>No active employees found</option>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Condition on Assignment</label>
+            <select
+              className="input-control"
+              value={assignFormData.condition_on_assignment}
+              onChange={(e) => setAssignFormData({ ...assignFormData, condition_on_assignment: e.target.value })}
+            >
+              <option value="Excellent">Excellent</option>
+              <option value="Good">Good</option>
+              <option value="Fair">Fair</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Assignment Remarks / Notes</label>
+            <textarea
+              className="input-control"
+              rows={2}
+              placeholder="e.g. Issued for remote developer setup..."
+              value={assignFormData.remarks}
+              onChange={(e) => setAssignFormData({ ...assignFormData, remarks: e.target.value })}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button type="button" onClick={() => setIsAssignModalOpen(false)} className="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting || !assignFormData.employee_id} className="btn btn-primary">
+              {submitting ? "Assigning..." : "Confirm & Assign Asset"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Return Asset Modal */}
+      <Modal
+        isOpen={isReturnModalOpen}
+        onClose={() => setIsReturnModalOpen(false)}
+        title={`Return Asset: ${selectedAssetForReturn?.asset_name} (${selectedAssetForReturn?.asset_code})`}
+      >
+        <form onSubmit={handleReturnSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {formError && (
+            <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.85rem' }}>
+              {formError}
+            </div>
+          )}
+
+          <div style={{ padding: '0.75rem', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '8px', border: '1px solid rgba(99, 102, 241, 0.2)', fontSize: '0.85rem', color: '#818cf8' }}>
+            Currently assigned to: <strong>{selectedAssetForReturn?.assigned_to?.employee_name} ({selectedAssetForReturn?.assigned_to?.employee_code})</strong>
+          </div>
+
+          <div className="form-grid-2">
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Condition on Return</label>
+              <select
+                className="input-control"
+                value={returnFormData.condition_on_return}
+                onChange={(e) => setReturnFormData({ ...returnFormData, condition_on_return: e.target.value })}
+              >
+                <option value="Excellent">Excellent</option>
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Damaged">Damaged</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Status after Return</label>
+              <select
+                className="input-control"
+                value={returnFormData.status_on_return}
+                onChange={(e) => setReturnFormData({ ...returnFormData, status_on_return: e.target.value })}
+              >
+                <option value="Available">Available (Back in storage)</option>
+                <option value="Under Maintenance">Under Maintenance</option>
+                <option value="Damaged">Damaged</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Return Remarks / Notes</label>
+            <textarea
+              className="input-control"
+              rows={2}
+              placeholder="e.g. Returned after project completion, verified condition..."
+              value={returnFormData.remarks}
+              onChange={(e) => setReturnFormData({ ...returnFormData, remarks: e.target.value })}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button type="button" onClick={() => setIsReturnModalOpen(false)} className="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting} className="btn btn-primary">
+              {submitting ? "Processing..." : "Confirm Asset Return"}
             </button>
           </div>
         </form>

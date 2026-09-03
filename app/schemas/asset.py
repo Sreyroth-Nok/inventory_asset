@@ -32,12 +32,22 @@ class AssetUpdate(BaseModel):
     status: Optional[str] = None
     description: Optional[str] = None
 
+class AssignedEmployeeInfo(BaseModel):
+    assignment_id: int
+    employee_id: int
+    employee_code: str
+    employee_name: str
+    assigned_date: Optional[date] = None
+    condition_on_assignment: Optional[str] = None
+
 class AssetResponse(AssetBase):
     asset_id: int
     created_at: datetime
     updated_at: datetime
     category: Optional[CategoryResponse] = None
     supplier: Optional[SupplierResponse] = None
+    assigned_to: Optional[AssignedEmployeeInfo] = None
 
     class Config:
         from_attributes = True
+

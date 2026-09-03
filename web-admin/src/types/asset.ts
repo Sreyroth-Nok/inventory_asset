@@ -12,7 +12,16 @@ export interface Asset {
   description?: string;
   category_name?: string;
   supplier_name?: string;
+  assigned_to?: {
+    assignment_id: number;
+    employee_id: number;
+    employee_code: string;
+    employee_name: string;
+    assigned_date?: string;
+    condition_on_assignment?: string;
+  };
 }
+
 
 export interface AssetCreate {
   asset_code: string;

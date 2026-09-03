@@ -5,7 +5,8 @@ from app.database import get_db
 from app.models.asset import Asset
 from app.models.category import AssetCategory
 from app.models.supplier import Supplier
-from app.schemas.asset import AssetCreate, AssetUpdate, AssetResponse
+from app.models.asset_assignment import AssetAssignment
+from app.schemas.asset import AssetCreate, AssetUpdate, AssetResponse, AssignedEmployeeInfo
 from app.models.user import User
 from app.core.dependencies import get_current_user, require_roles
 
@@ -38,7 +39,26 @@ def get_assets(
             (Asset.asset_name.ilike(f"%{search}%")) |
             (Asset.serial_number.ilike(f"%{search}%"))
         )
-    return query.offset(skip).limit(limit).all()
+    assets = query.offset(skip).limit(limit).all()
+    
+    # Populate active assigned employee information if asset status is Assigned
+    for asset in assets:
+        if asset.status == "Assigned":
+            active_assign = db.query(AssetAssignment).filter(
+                AssetAssignment.asset_id == asset.asset_id,
+                AssetAssignment.status == "Assigned"
+            ).first()
+            if active_assign and active_assign.employee:
+                asset.assigned_to = AssignedEmployeeInfo(
+                    assignment_id=active_assign.assignment_id,
+                    employee_id=active_assign.employee_id,
+                    employee_code=active_assign.employee.employee_code,
+                    employee_name=active_assign.employee.employee_name,
+                    assigned_date=active_assign.assigned_date,
+                    condition_on_assignment=active_assign.condition_on_assignment
+                )
+    return assets
+
 
 @router.post("", response_model=AssetResponse, status_code=status.HTTP_201_CREATED)
 def create_asset(
@@ -75,7 +95,22 @@ def get_asset(
     asset = db.query(Asset).filter(Asset.asset_id == asset_id).first()
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
+    if asset.status == "Assigned":
+        active_assign = db.query(AssetAssignment).filter(
+            AssetAssignment.asset_id == asset.asset_id,
+            AssetAssignment.status == "Assigned"
+        ).first()
+        if active_assign and active_assign.employee:
+            asset.assigned_to = AssignedEmployeeInfo(
+                assignment_id=active_assign.assignment_id,
+                employee_id=active_assign.employee_id,
+                employee_code=active_assign.employee.employee_code,
+                employee_name=active_assign.employee.employee_name,
+                assigned_date=active_assign.assigned_date,
+                condition_on_assignment=active_assign.condition_on_assignment
+            )
     return asset
+
 
 @router.put("/{asset_id}", response_model=AssetResponse)
 def update_asset(
