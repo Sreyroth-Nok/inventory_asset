@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Bell, Sparkles, Sun, Moon, Menu } from 'lucide-react';
+import { Search, Bell, Sparkles, Sun, Moon, Menu, User } from 'lucide-react';
+import type { UserProfile } from '../../services/authService';
 
 interface HeaderProps {
   title: string;
+  user?: UserProfile | null;
   onToggleSidebar?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ title, user, onToggleSidebar }) => {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
   });
@@ -18,6 +20,11 @@ export const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const getUserInitial = () => {
+    if (user?.username) return user.username.charAt(0).toUpperCase();
+    return 'U';
   };
 
   return (
@@ -34,15 +41,12 @@ export const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
           <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-main)' }}>
             {title}
           </h1>
-          {/* <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            System overview and management control panel
-          </p> */}
         </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         {/* Global Search */}
-        <div className="header-search" style={{ position: 'relative', width: '260px' }}>
+        <div className="header-search" style={{ position: 'relative', width: '240px' }}>
           <Search size={16} color="#64748b" style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
@@ -138,11 +142,16 @@ export const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
             fontSize: '0.875rem',
             color: '#ffffff'
           }}>
-            A
+            {getUserInitial()}
           </div>
           <div>
-            <p style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>Admin User</p>
-            <p style={{ fontSize: '0.7rem', color: '#818cf8' }}>System Administrator</p>
+            <p style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>
+              {user?.username || 'User Profile'}
+            </p>
+            <p style={{ fontSize: '0.7rem', color: '#818cf8' }}>
+              {typeof user?.role === 'string' ? user.role : user?.role?.role_name || 'System User'}
+            </p>
+
           </div>
         </div>
       </div>

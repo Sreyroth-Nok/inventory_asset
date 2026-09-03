@@ -13,15 +13,25 @@ import {
   Layers,
   X
 } from 'lucide-react';
+import { canAccessTab } from '../../utils/rbac';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  userRole?: string;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  onLogout?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ 
+  activeTab, 
+  setActiveTab, 
+  userRole, 
+  mobileOpen, 
+  onCloseMobile, 
+  onLogout 
+}) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'assets', label: 'Asset Management', icon: Package },
@@ -34,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobil
     { id: 'suppliers', label: 'Suppliers', icon: Truck },
   ];
 
+  const visibleMenuItems = menuItems.filter(item => canAccessTab(userRole, item.id));
 
   const handleSelectTab = (id: string) => {
     setActiveTab(id);
@@ -80,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobil
 
       {/* Navigation Menu */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flex: 1 }}>
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
@@ -116,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobil
       {/* Footer Info / Logout */}
       <div style={{ paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
         <button
-          onClick={() => console.log('Logout clicked')}
+          onClick={onLogout}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -136,6 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobil
           <span>Sign Out</span>
         </button>
       </div>
+
     </aside>
     </>
   );

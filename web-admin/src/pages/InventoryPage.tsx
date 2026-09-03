@@ -4,11 +4,14 @@ import type { InventoryItem, InventoryItemCreate } from '../types/inventory';
 import { inventoryService } from '../services/inventoryService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
+import { canDeleteRecords } from '../utils/rbac';
 
 export const InventoryPage: React.FC = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,14 +36,21 @@ export const InventoryPage: React.FC = () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const data = await inventoryService.getInventoryItems(searchTerm);
+      const [data, userProfile] = await Promise.all([
+        inventoryService.getInventoryItems(searchTerm),
+        authService.getCurrentUser().catch(() => null)
+      ]);
       setItems(data);
+      if (userProfile?.role?.role_name) {
+        setCurrentUserRole(userProfile.role.role_name);
+      }
     } catch (err) {
       console.error("Error fetching inventory items:", err);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchInventory();
@@ -181,7 +191,10 @@ export const InventoryPage: React.FC = () => {
                     <td style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
                         <button onClick={() => handleOpenEditModal(item)} className="btn btn-secondary" style={{ padding: '0.35rem 0.6rem' }}><Edit size={14} /></button>
-                        <button onClick={() => handleDelete(item.inventory_id)} className="btn btn-danger" style={{ padding: '0.35rem 0.6rem' }}><Trash2 size={14} /></button>
+                        {canDeleteRecords(currentUserRole) && (
+                          <button onClick={() => handleDelete(item.inventory_id)} className="btn btn-danger" style={{ padding: '0.35rem 0.6rem' }}><Trash2 size={14} /></button>
+                        )}
+
                       </div>
                     </td>
                   </tr>

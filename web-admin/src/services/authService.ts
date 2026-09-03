@@ -10,6 +10,27 @@ export interface TokenResponse {
   token_type: string;
 }
 
+export interface UserProfile {
+  user_id: number;
+  username: string;
+  email: string;
+  phone?: string;
+  gender?: string;
+  status: string;
+  role?: string | {
+    role_id?: number;
+    role_name?: string;
+    description?: string;
+  };
+  employee?: {
+    employee_id: number;
+    employee_code: string;
+    employee_name: string;
+    position?: string;
+  };
+}
+
+
 export const authService = {
   login: async (credentials: LoginPayload): Promise<TokenResponse> => {
     const response = await apiClient.post<TokenResponse>('/auth/login/json', credentials);
@@ -20,16 +41,15 @@ export const authService = {
   },
 
   ensureAuthenticated: async (): Promise<string> => {
-    let token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
     if (!token) {
-      const res = await authService.login({ username: 'admin', password: '123456' });
-      token = res.access_token;
+      throw new Error("User is not authenticated. Please log in.");
     }
     return token;
   },
 
-  getCurrentUser: async () => {
-    const response = await apiClient.get('/auth/me');
+  getCurrentUser: async (): Promise<UserProfile> => {
+    const response = await apiClient.get<UserProfile>('/auth/me');
     return response.data;
   },
 

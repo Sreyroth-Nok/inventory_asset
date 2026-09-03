@@ -7,12 +7,15 @@ import { employeeService } from '../services/employeeService';
 import { assetAssignmentService } from '../services/assetAssignmentService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
+import { canDeleteRecords } from '../utils/rbac';
 
 export const AssetsPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+
 
   // Asset CRUD Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,17 +57,22 @@ export const AssetsPage: React.FC = () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const [assetData, empData] = await Promise.all([
+      const [assetData, empData, userProfile] = await Promise.all([
         assetService.getAssets(searchTerm),
-        employeeService.getEmployees().catch(() => [])
+        employeeService.getEmployees().catch(() => []),
+        authService.getCurrentUser().catch(() => null)
       ]);
       setAssets(assetData);
       setEmployees(empData);
+      if (userProfile?.role?.role_name) {
+        setCurrentUserRole(userProfile.role.role_name);
+      }
     } catch (err) {
       console.error("Error fetching assets:", err);
     } finally {
       setLoading(false);
     }
+
   };
 
   useEffect(() => {
@@ -321,7 +329,10 @@ export const AssetsPage: React.FC = () => {
                         )}
 
                         <button onClick={() => handleOpenEditModal(asset)} className="btn btn-secondary" style={{ padding: '0.35rem 0.6rem' }}><Edit size={14} /></button>
-                        <button onClick={() => handleDelete(asset.asset_id)} className="btn btn-danger" style={{ padding: '0.35rem 0.6rem' }}><Trash2 size={14} /></button>
+                        {canDeleteRecords(currentUserRole) && (
+                          <button onClick={() => handleDelete(asset.asset_id)} className="btn btn-danger" style={{ padding: '0.35rem 0.6rem' }}><Trash2 size={14} /></button>
+                        )}
+
                       </div>
                     </td>
                   </tr>

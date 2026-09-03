@@ -103,25 +103,31 @@ body {
   padding: 1.5rem 1rem;
   z-index: 50;
   transition: var(--transition-smooth);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .main-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  min-width: 0;
 }
 
 .top-header {
   height: 70px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  sticky: top 0;
+  position: sticky;
+  top: 0;
   z-index: 40;
 }
 
@@ -197,20 +203,24 @@ body {
   background: rgba(244, 63, 94, 0.25);
 }
 
-/* Data Table */
+/* Data Table with Horizontal Scroll Support */
 .table-container {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
 }
 
 .data-table {
   width: 100%;
+  min-width: 850px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
+
 
 .data-table th {
   background: var(--table-header-bg);
@@ -389,3 +399,47 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Clean Print Media Styles */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .sidebar, .top-header, .mobile-menu-btn, .btn, .header-search, select, input {
+    display: none !important;
+  }
+  .app-container {
+    display: block !important;
+  }
+  .main-content {
+    display: block !important;
+  }
+  .page-body {
+    padding: 0 !important;
+  }
+  .card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .table-container {
+    border: 1px solid #cbd5e1 !important;
+    overflow: visible !important;
+  }
+  .data-table {
+    min-width: 100% !important;
+    white-space: normal !important;
+  }
+  .data-table th {
+    background: #f1f5f9 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #94a3b8 !important;
+  }
+  .data-table td {
+    color: #000000 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+}
+
