@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Edit, RefreshCw } from 'lucide-react';
-import type { Employee, EmployeeCreate } from '../types/employee';
+import type { Employee, EmployeeCreate, Department } from '../types/employee';
 import { employeeService } from '../services/employeeService';
+import { departmentService } from '../services/departmentService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
 
 export const EmployeesPage: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -18,6 +20,7 @@ export const EmployeesPage: React.FC = () => {
   const initialFormState: EmployeeCreate = {
     employee_code: '',
     employee_name: '',
+    department_id: 1,
     email: '',
     phone: '',
     position: 'Staff',
@@ -26,27 +29,32 @@ export const EmployeesPage: React.FC = () => {
 
   const [formData, setFormData] = useState<EmployeeCreate>(initialFormState);
 
-  const fetchEmployees = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const data = await employeeService.getEmployees();
-      setEmployees(data);
+      const [empData, deptData] = await Promise.all([
+        employeeService.getEmployees().catch(() => []),
+        departmentService.getDepartments().catch(() => [])
+      ]);
+      setEmployees(empData);
+      setDepartments(deptData);
     } catch (err) {
-      console.error("Error fetching employees:", err);
+      console.error("Error fetching employee directory data:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchEmployees();
+    fetchData();
   }, []);
 
   const handleOpenCreateModal = () => {
     setEditingEmployee(null);
     setFormData({
       ...initialFormState,
+      department_id: departments.length > 0 ? departments[0].department_id : 1,
       employee_code: `EMP-${Math.floor(1000 + Math.random() * 9000)}`
     });
     setFormError(null);
@@ -58,6 +66,7 @@ export const EmployeesPage: React.FC = () => {
     setFormData({
       employee_code: emp.employee_code,
       employee_name: emp.employee_name,
+      department_id: emp.department_id || (departments.length > 0 ? departments[0].department_id : 1),
       email: emp.email || '',
       phone: emp.phone || '',
       position: emp.position || 'Staff',
@@ -79,10 +88,17 @@ export const EmployeesPage: React.FC = () => {
         await employeeService.createEmployee(formData);
       }
       setIsModalOpen(false);
-      fetchEmployees();
+      fetchData();
     } catch (err: any) {
       console.error("Failed to save employee record:", err);
-      setFormError(err.response?.data?.detail || "Failed to save employee. Make sure you have proper permissions.");
+      const detail = err.response?.data?.detail;
+      let msg = "Failed to save employee record.";
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((d: any) => `${d.loc ? d.loc.join('.') + ': ' : ''}${d.msg}`).join(', ');
+      }
+      setFormError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -92,7 +108,7 @@ export const EmployeesPage: React.FC = () => {
     if (confirm("Are you sure you want to delete this employee?")) {
       try {
         await employeeService.deleteEmployee(id);
-        fetchEmployees();
+        fetchData();
       } catch (err) {
         alert("Failed to delete employee.");
       }
@@ -102,7 +118,7 @@ export const EmployeesPage: React.FC = () => {
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-        <button onClick={fetchEmployees} className="btn btn-secondary">
+        <button onClick={fetchData} className="btn btn-secondary">
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh Employee Directory
         </button>
 
@@ -128,7 +144,7 @@ export const EmployeesPage: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
                     Loading employee directory from database...
                   </td>
                 </tr>
@@ -136,10 +152,10 @@ export const EmployeesPage: React.FC = () => {
                 employees.map((emp) => (
                   <tr key={emp.employee_id}>
                     <td style={{ fontWeight: 700, color: '#10b981' }}>{emp.employee_code}</td>
-                    <td style={{ fontWeight: 600, color: '#f8fafc' }}>{emp.employee_name}</td>
-                    <td style={{ color: '#cbd5e1' }}>{emp.position || 'Staff'}</td>
-                    <td style={{ color: '#94a3b8', fontSize: '0.825rem' }}>{emp.email || '-'}</td>
-                    <td style={{ color: '#94a3b8', fontSize: '0.825rem' }}>{emp.phone || '-'}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{emp.employee_name}</td>
+                    <td style={{ color: 'var(--text-muted)' }}>{emp.position || 'Staff'}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.825rem' }}>{emp.email || '-'}</td>
+                    <td style={{ color: 'var(--text-muted)', fontSize: '0.825rem' }}>{emp.phone || '-'}</td>
                     <td>
                       <span className={`badge ${emp.status === 'Active' ? 'badge-active' : 'badge-danger'}`}>{emp.status}</span>
                     </td>
@@ -153,7 +169,7 @@ export const EmployeesPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
                     No employee records in database.
                   </td>
                 </tr>
@@ -169,16 +185,16 @@ export const EmployeesPage: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         title={editingEmployee ? "Edit Employee Record" : "Add New Employee"}
       >
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {formError && (
-            <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.85rem' }}>
+            <div style={{ padding: '0.6rem 0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.825rem' }}>
               {formError}
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Employee Code *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Employee Code *</label>
               <input
                 type="text"
                 required
@@ -188,7 +204,7 @@ export const EmployeesPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Full Name *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Full Name *</label>
               <input
                 type="text"
                 required
@@ -199,9 +215,27 @@ export const EmployeesPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Position / Title</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Department</label>
+              <select
+                className="input-control"
+                value={formData.department_id || ''}
+                onChange={(e) => setFormData({ ...formData, department_id: parseInt(e.target.value) || undefined })}
+              >
+                {departments.length > 0 ? (
+                  departments.map((dept) => (
+                    <option key={dept.department_id} value={dept.department_id}>
+                      {dept.department_name}
+                    </option>
+                  ))
+                ) : (
+                  <option value={1}>General Department</option>
+                )}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Position / Title</label>
               <input
                 type="text"
                 className="input-control"
@@ -209,8 +243,11 @@ export const EmployeesPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, position: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Employment Status</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Employment Status</label>
               <select
                 className="input-control"
                 value={formData.status}
@@ -221,20 +258,8 @@ export const EmployeesPage: React.FC = () => {
                 <option value="Resigned">Resigned</option>
               </select>
             </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Email Address</label>
-              <input
-                type="email"
-                className="input-control"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Phone Number</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Phone Number</label>
               <input
                 type="text"
                 className="input-control"
@@ -242,6 +267,16 @@ export const EmployeesPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
             </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Email Address</label>
+            <input
+              type="email"
+              className="input-control"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>

@@ -1,25 +1,48 @@
-import React from 'react';
-import { Search, Bell, Sparkles } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Search, Bell, Sparkles, Sun, Moon, Menu } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
+  onToggleSidebar?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title }) => {
+export const Header: React.FC<HeaderProps> = ({ title, onToggleSidebar }) => {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   return (
     <header className="top-header">
-      <div>
-        <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: '#f8fafc' }}>
-          {title}
-        </h1>
-        <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-          System overview and management control panel
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <button
+          className="mobile-menu-btn"
+          onClick={onToggleSidebar}
+          title="Open Navigation Menu"
+        >
+          <Menu size={20} />
+        </button>
+        <div>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-main)' }}>
+            {title}
+          </h1>
+          {/* <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            System overview and management control panel
+          </p> */}
+        </div>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
         {/* Global Search */}
-        <div style={{ position: 'relative', width: '260px' }}>
+        <div className="header-search" style={{ position: 'relative', width: '260px' }}>
           <Search size={16} color="#64748b" style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
@@ -39,16 +62,37 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
           border: '1px solid rgba(16, 185, 129, 0.25)',
           borderRadius: '9999px',
           fontSize: '0.75rem',
-          color: '#34d399',
+          color: '#10b981',
           fontWeight: 600
         }}>
           <Sparkles size={13} />
           <span>API Connected</span>
         </div>
 
+        {/* Theme Toggle Button (Light/Dark Mode) */}
+        <button
+          onClick={toggleTheme}
+          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '10px',
+            width: '38px',
+            height: '38px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'var(--text-main)',
+            cursor: 'pointer',
+            transition: 'var(--transition-fast)'
+          }}
+        >
+          {theme === 'dark' ? <Sun size={18} color="#f59e0b" /> : <Moon size={18} color="#6366f1" />}
+        </button>
+
         {/* Notification Bell */}
         <button style={{
-          background: 'rgba(255, 255, 255, 0.05)',
+          background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: '10px',
           width: '38px',
@@ -56,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#94a3b8',
+          color: 'var(--text-muted)',
           cursor: 'pointer',
           position: 'relative'
         }}>
@@ -78,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
           alignItems: 'center',
           gap: '0.75rem',
           padding: '0.375rem 0.875rem',
-          background: 'rgba(30, 41, 59, 0.7)',
+          background: 'var(--bg-card)',
           border: '1px solid var(--border-color)',
           borderRadius: '12px'
         }}>
@@ -97,7 +141,7 @@ export const Header: React.FC<HeaderProps> = ({ title }) => {
             A
           </div>
           <div>
-            <p style={{ fontSize: '0.825rem', fontWeight: 600, color: '#f8fafc', lineHeight: 1.2 }}>Admin User</p>
+            <p style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-main)', lineHeight: 1.2 }}>Admin User</p>
             <p style={{ fontSize: '0.7rem', color: '#818cf8' }}>System Administrator</p>
           </div>
         </div>

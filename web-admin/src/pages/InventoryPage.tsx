@@ -158,7 +158,7 @@ export const InventoryPage: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
                     Loading stock records from API...
                   </td>
                 </tr>
@@ -166,13 +166,13 @@ export const InventoryPage: React.FC = () => {
                 items.map((item) => (
                   <tr key={item.inventory_id}>
                     <td style={{ fontWeight: 700, color: '#06b6d4' }}>{item.item_code}</td>
-                    <td style={{ fontWeight: 600, color: '#f8fafc' }}>{item.item_name}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{item.item_name}</td>
                     <td>{item.category || 'General'}</td>
-                    <td style={{ color: '#94a3b8' }}>{item.unit || 'Piece'}</td>
-                    <td style={{ fontWeight: 700, fontSize: '1rem', color: item.quantity <= item.minimum_stock ? '#fca5a5' : '#f8fafc' }}>
+                    <td style={{ color: 'var(--text-muted)' }}>{item.unit || 'Piece'}</td>
+                    <td style={{ fontWeight: 700, fontSize: '1rem', color: item.quantity <= item.minimum_stock ? '#e11d48' : 'var(--text-main)' }}>
                       {item.quantity}
                     </td>
-                    <td style={{ color: '#64748b' }}>{item.minimum_stock}</td>
+                    <td style={{ color: 'var(--text-dim)' }}>{item.minimum_stock}</td>
                     <td>
                       <span className={`badge ${getStatusBadge(item.status)}`}>
                         {item.status}
@@ -188,7 +188,7 @@ export const InventoryPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
                     No inventory items found.
                   </td>
                 </tr>
@@ -211,9 +211,9 @@ export const InventoryPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Item Code *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Item Code *</label>
               <input
                 type="text"
                 required
@@ -223,7 +223,7 @@ export const InventoryPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Item Name *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Item Name *</label>
               <input
                 type="text"
                 required
@@ -234,9 +234,9 @@ export const InventoryPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Quantity *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Quantity *</label>
               <input
                 type="number"
                 required
@@ -247,7 +247,7 @@ export const InventoryPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Minimum Stock Threshold</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Minimum Stock Threshold</label>
               <input
                 type="number"
                 min="0"
@@ -258,9 +258,9 @@ export const InventoryPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Unit (e.g. Piece, Box, Pack)</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Unit (e.g. Piece, Box, Pack)</label>
               <input
                 type="text"
                 className="input-control"
@@ -269,7 +269,7 @@ export const InventoryPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Unit Price ($)</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Unit Price ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -281,7 +281,7 @@ export const InventoryPage: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Status</label>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Status</label>
             <select
               className="input-control"
               value={formData.status}
@@ -295,7 +295,7 @@ export const InventoryPage: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Description</label>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Description</label>
             <textarea
               className="input-control"
               rows={3}

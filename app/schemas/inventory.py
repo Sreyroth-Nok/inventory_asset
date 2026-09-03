@@ -4,7 +4,7 @@ from datetime import datetime
 from app.schemas.supplier import SupplierResponse
 
 class InventoryItemBase(BaseModel):
-    supplier_id: int
+    supplier_id: Optional[int] = None
     item_code: str
     item_name: str
     category: Optional[str] = None

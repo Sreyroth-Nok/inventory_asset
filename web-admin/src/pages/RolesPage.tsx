@@ -125,8 +125,8 @@ export const RolesPage: React.FC = () => {
                     <ShieldCheck size={18} color="#818cf8" />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>{role.role_name}</h3>
-                    <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Role ID: #{role.role_id}</span>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)' }}>{role.role_name}</h3>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>Role ID: #{role.role_id}</span>
                   </div>
                 </div>
 
@@ -140,7 +140,7 @@ export const RolesPage: React.FC = () => {
                 </div>
               </div>
 
-              <p style={{ fontSize: '0.825rem', color: '#94a3b8', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.825rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
                 {role.description || 'No description provided.'}
               </p>
 
@@ -152,17 +152,17 @@ export const RolesPage: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 fontSize: '0.75rem',
-                color: '#a5b4fc'
+                color: '#6366f1'
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Key size={13} /> Active Access Controls
                 </span>
-                <span style={{ color: '#34d399', fontWeight: 600 }}>Database Synced</span>
+                <span style={{ color: '#10b981', fontWeight: 600 }}>Database Synced</span>
               </div>
             </div>
           ))
         ) : (
-          <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+          <div className="card" style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
             No roles stored in database.
           </div>
         )}
@@ -182,7 +182,7 @@ export const RolesPage: React.FC = () => {
           )}
 
           <div>
-            <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Role Name *</label>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Role Name *</label>
             <input
               type="text"
               required
@@ -194,7 +194,7 @@ export const RolesPage: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Description</label>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Description</label>
             <textarea
               className="input-control"
               rows={3}

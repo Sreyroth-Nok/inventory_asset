@@ -7,7 +7,7 @@ class InventoryItem(Base):
     __tablename__ = "inventory_items"
 
     inventory_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    supplier_id = Column(Integer, ForeignKey("suppliers.supplier_id"), nullable=False)
+    supplier_id = Column(Integer, ForeignKey("suppliers.supplier_id"), nullable=True)
     item_code = Column(String(50), unique=True, index=True, nullable=False)
     item_name = Column(String(100), nullable=False)
     category = Column(String(100), nullable=True)

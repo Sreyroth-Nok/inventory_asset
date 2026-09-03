@@ -7,8 +7,8 @@ class Asset(Base):
     __tablename__ = "assets"
 
     asset_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    category_id = Column(Integer, ForeignKey("asset_categories.category_id"), nullable=False)
-    supplier_id = Column(Integer, ForeignKey("suppliers.supplier_id"), nullable=False)
+    category_id = Column(Integer, ForeignKey("asset_categories.category_id"), nullable=True)
+    supplier_id = Column(Integer, ForeignKey("suppliers.supplier_id"), nullable=True)
     asset_code = Column(String(50), unique=True, index=True, nullable=False)
     asset_name = Column(String(100), nullable=False)
     serial_number = Column(String(100), nullable=True)

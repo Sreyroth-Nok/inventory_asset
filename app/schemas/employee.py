@@ -4,7 +4,7 @@ from datetime import datetime
 from app.schemas.department import DepartmentResponse
 
 class EmployeeBase(BaseModel):
-    department_id: int
+    department_id: Optional[int] = None
     employee_code: str
     employee_name: str
     email: Optional[str] = None

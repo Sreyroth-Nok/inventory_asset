@@ -7,9 +7,12 @@ import { InventoryPage } from './pages/InventoryPage';
 import { UsersPage } from './pages/UsersPage';
 import { RolesPage } from './pages/RolesPage';
 import { EmployeesPage } from './pages/EmployeesPage';
+import { DepartmentsPage } from './pages/DepartmentsPage';
+import { SuppliersPage } from './pages/SuppliersPage';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState<boolean>(false);
 
   const getPageTitle = () => {
     switch (activeTab) {
@@ -33,6 +36,8 @@ export const App: React.FC = () => {
       case 'users': return <UsersPage />;
       case 'roles': return <RolesPage />;
       case 'employees': return <EmployeesPage />;
+      case 'departments': return <DepartmentsPage />;
+      case 'suppliers': return <SuppliersPage />;
       default: return <DashboardPage />;
     }
   };
@@ -40,12 +45,20 @@ export const App: React.FC = () => {
   return (
     <div className="app-container">
       {/* Sidebar Navigation */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        mobileOpen={mobileSidebarOpen}
+        onCloseMobile={() => setMobileSidebarOpen(false)}
+      />
 
       {/* Main Content Area */}
       <div className="main-content">
         {/* Header Bar */}
-        <Header title={getPageTitle()} />
+        <Header 
+          title={getPageTitle()} 
+          onToggleSidebar={() => setMobileSidebarOpen(prev => !prev)}
+        />
 
         {/* Dynamic Page View Body */}
         <main className="page-body">

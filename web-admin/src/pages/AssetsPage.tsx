@@ -85,7 +85,14 @@ export const AssetsPage: React.FC = () => {
       fetchAssets();
     } catch (err: any) {
       console.error("Failed to save asset:", err);
-      setFormError(err.response?.data?.detail || "Failed to save asset. Please try again.");
+      const detail = err.response?.data?.detail;
+      let msg = "Failed to save asset. Please try again.";
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((d: any) => `${d.loc ? d.loc.join('.') + ': ' : ''}${d.msg}`).join(', ');
+      }
+      setFormError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -163,11 +170,11 @@ export const AssetsPage: React.FC = () => {
                 assets.map((asset) => (
                   <tr key={asset.asset_id}>
                     <td style={{ fontWeight: 700, color: '#818cf8' }}>{asset.asset_code}</td>
-                    <td style={{ fontWeight: 600, color: '#f8fafc' }}>{asset.asset_name}</td>
-                    <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{asset.serial_number || '-'}</td>
+                    <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{asset.asset_name}</td>
+                    <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{asset.serial_number || '-'}</td>
                     <td style={{ fontWeight: 600 }}>${asset.purchase_price != null ? Number(asset.purchase_price).toFixed(2) : '0.00'}</td>
                     <td>
-                      <span style={{ fontSize: '0.8rem', color: '#cbd5e1' }}>{asset.condition || 'Good'}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{asset.condition || 'Good'}</span>
                     </td>
                     <td>
                       <span className={`badge ${getStatusBadge(asset.status)}`}>
@@ -184,7 +191,7 @@ export const AssetsPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
                     No assets found matching your query.
                   </td>
                 </tr>
@@ -207,9 +214,9 @@ export const AssetsPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Asset Code *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Asset Code *</label>
               <input
                 type="text"
                 required
@@ -219,7 +226,7 @@ export const AssetsPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Asset Name *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Asset Name *</label>
               <input
                 type="text"
                 required
@@ -230,9 +237,9 @@ export const AssetsPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Serial Number</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Serial Number</label>
               <input
                 type="text"
                 className="input-control"
@@ -241,7 +248,7 @@ export const AssetsPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Purchase Price ($)</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Purchase Price ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -252,9 +259,9 @@ export const AssetsPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Condition</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Condition</label>
               <select
                 className="input-control"
                 value={formData.condition}
@@ -268,7 +275,7 @@ export const AssetsPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Status</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Status</label>
               <select
                 className="input-control"
                 value={formData.status}
@@ -284,7 +291,7 @@ export const AssetsPage: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Description</label>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Description</label>
             <textarea
               className="input-control"
               rows={3}

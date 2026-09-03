@@ -9,15 +9,18 @@ import {
   Building2, 
   Truck, 
   LogOut,
-  Layers
+  Layers,
+  X
 } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobileOpen, onCloseMobile }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'assets', label: 'Asset Management', icon: Package },
@@ -29,29 +32,48 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
     { id: 'suppliers', label: 'Suppliers', icon: Truck },
   ];
 
+  const handleSelectTab = (id: string) => {
+    setActiveTab(id);
+    if (onCloseMobile) onCloseMobile();
+  };
+
   return (
-    <aside className="sidebar">
-      {/* Brand Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
-        <div style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
-        }}>
-          <Layers size={22} color="#ffffff" />
+    <>
+      {mobileOpen && <div className="sidebar-overlay" onClick={onCloseMobile} />}
+      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
+        {/* Brand Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
+            }}>
+              <Layers size={22} color="#ffffff" />
+            </div>
+            <div>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.2 }}>
+                Inventra<span style={{ color: '#06b6d4' }}>Admin</span>
+              </h2>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Asset & Inventory v2.0</span>
+            </div>
+          </div>
+
+          {onCloseMobile && (
+            <button
+              onClick={onCloseMobile}
+              className="mobile-menu-btn"
+              style={{ display: 'flex' }}
+            >
+              <X size={20} />
+            </button>
+          )}
         </div>
-        <div>
-          <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#f8fafc', lineHeight: 1.2 }}>
-            Inventra<span style={{ color: '#06b6d4' }}>Admin</span>
-          </h2>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Asset & Inventory v2.0</span>
-        </div>
-      </div>
 
       {/* Navigation Menu */}
       <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flex: 1 }}>
@@ -61,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleSelectTab(item.id)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -112,5 +134,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
         </button>
       </div>
     </aside>
+    </>
   );
 };

@@ -12,10 +12,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       style={{
         position: 'fixed',
-        top: 0,
+        top: 100,
         left: 0,
         right: 0,
         bottom: 0,
@@ -29,38 +29,39 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       }}
       onClick={onClose}
     >
-      <div 
+      <div
         className="card animate-fade-in"
         style={{
           width: '100%',
-          maxWidth: '560px',
-          maxHeight: '90vh',
+          maxWidth: '540px',
+          maxHeight: '85vh',
           overflowY: 'auto',
-          backgroundColor: '#1e293b',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
-          padding: '1.5rem',
+          backgroundColor: 'var(--modal-bg)',
+          border: '1px solid var(--border-color)',
+          boxShadow: '0 20px 30px -5px rgba(0, 0, 0, 0.4)',
+          borderRadius: '16px',
+          padding: '1.25rem 1.5rem',
           position: 'relative'
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#f8fafc', margin: 0 }}>{title}</h3>
-          <button 
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>{title}</h3>
+          <button
             onClick={onClose}
             style={{
-              background: 'none',
+              background: 'rgba(148, 163, 184, 0.12)',
               border: 'none',
-              color: '#94a3b8',
+              color: 'var(--text-muted)',
               cursor: 'pointer',
-              padding: '0.25rem',
-              borderRadius: '6px',
+              padding: '0.35rem',
+              borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
         {children}

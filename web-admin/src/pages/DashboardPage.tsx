@@ -77,7 +77,7 @@ export const DashboardPage: React.FC = () => {
           return (
             <div key={idx} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>{item.title}</span>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>{item.title}</span>
                 <div style={{
                   width: '38px',
                   height: '38px',
@@ -92,10 +92,10 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: '#f8fafc' }}>
+                <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--text-main)' }}>
                   {loading ? '...' : item.value}
                 </h3>
-                <span style={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                   <TrendingUp size={13} />
                   {item.sub}
                 </span>
@@ -111,8 +111,8 @@ export const DashboardPage: React.FC = () => {
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>Live Recent Activity & Transactions</h3>
-              <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Real-time audit log fetched from backend API</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>Live Recent Activity & Transactions</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Real-time audit log fetched from backend API</p>
             </div>
             <button onClick={fetchDashboardData} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
@@ -133,7 +133,7 @@ export const DashboardPage: React.FC = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem' }}>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
                       Loading stats from API...
                     </td>
                   </tr>
@@ -147,13 +147,13 @@ export const DashboardPage: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ fontWeight: 700 }}>{tx.quantity}</td>
-                      <td style={{ color: '#94a3b8' }}>{tx.reference || '-'}</td>
-                      <td style={{ fontSize: '0.8rem', color: '#64748b' }}>{tx.reason || '-'}</td>
+                      <td style={{ color: 'var(--text-muted)' }}>{tx.reference || '-'}</td>
+                      <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{tx.reason || '-'}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
                       No recent transactions recorded in database.
                     </td>
                   </tr>
@@ -165,7 +165,7 @@ export const DashboardPage: React.FC = () => {
 
         {/* Quick Operations Panel */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f8fafc' }}>API Operations</h3>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>API Operations</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'flex-start' }}>
@@ -189,7 +189,7 @@ export const DashboardPage: React.FC = () => {
             border: '1px solid rgba(99, 102, 241, 0.2)'
           }}>
             <p style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 600 }}>Backend Connection Status</p>
-            <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
               Connected to <code>http://127.0.0.1:8000/api</code>. Database tables auto-synced.
             </p>
           </div>

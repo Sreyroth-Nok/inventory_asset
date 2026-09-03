@@ -159,10 +159,10 @@ export const UsersPage: React.FC = () => {
                         }}>
                           {u.username.charAt(0).toUpperCase()}
                         </div>
-                        <span style={{ fontWeight: 600, color: '#f8fafc' }}>{u.username}</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{u.username}</span>
                       </div>
                     </td>
-                    <td style={{ color: '#94a3b8' }}>{u.email}</td>
+                    <td style={{ color: 'var(--text-muted)' }}>{u.email}</td>
                     <td>
                       <span style={{
                         display: 'inline-flex',
@@ -171,15 +171,15 @@ export const UsersPage: React.FC = () => {
                         padding: '0.25rem 0.6rem',
                         borderRadius: '6px',
                         background: 'rgba(99, 102, 241, 0.15)',
-                        color: '#a5b4fc',
+                        color: '#6366f1',
                         fontWeight: 600,
                         fontSize: '0.75rem'
                       }}>
                         <Shield size={12} /> {typeof u.role === 'string' ? u.role : u.role?.role_name || `Role #${u.role_id || 1}`}
                       </span>
                     </td>
-                    <td style={{ color: '#cbd5e1' }}>{u.phone || '-'}</td>
-                    <td style={{ color: '#cbd5e1' }}>{u.gender || '-'}</td>
+                    <td style={{ color: 'var(--text-muted)' }}>{u.phone || '-'}</td>
+                    <td style={{ color: 'var(--text-muted)' }}>{u.gender || '-'}</td>
                     <td>
                       <span className={`badge ${u.status === 'Active' ? 'badge-active' : 'badge-danger'}`}>{u.status}</span>
                     </td>
@@ -193,7 +193,7 @@ export const UsersPage: React.FC = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', color: '#64748b', padding: '2rem' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
                     No users found in database.
                   </td>
                 </tr>
@@ -216,9 +216,9 @@ export const UsersPage: React.FC = () => {
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Username *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Username *</label>
               <input
                 type="text"
                 required
@@ -228,7 +228,7 @@ export const UsersPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Email Address *</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Email Address *</label>
               <input
                 type="email"
                 required
@@ -240,7 +240,7 @@ export const UsersPage: React.FC = () => {
           </div>
 
           <div>
-            <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>
               {editingUser ? "Password (leave blank to keep unchanged)" : "Password *"}
             </label>
             <input
@@ -252,9 +252,9 @@ export const UsersPage: React.FC = () => {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>System Role</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>System Role</label>
               <select
                 className="input-control"
                 value={formData.role}
@@ -266,7 +266,7 @@ export const UsersPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Account Status</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Account Status</label>
               <select
                 className="input-control"
                 value={formData.status}
@@ -278,9 +278,9 @@ export const UsersPage: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-grid-2">
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Phone</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Phone</label>
               <input
                 type="text"
                 className="input-control"
@@ -289,7 +289,7 @@ export const UsersPage: React.FC = () => {
               />
             </div>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '0.35rem' }}>Gender</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Gender</label>
               <select
                 className="input-control"
                 value={formData.gender}

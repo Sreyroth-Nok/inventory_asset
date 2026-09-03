@@ -6,8 +6,8 @@ from app.schemas.category import CategoryResponse
 from app.schemas.supplier import SupplierResponse
 
 class AssetBase(BaseModel):
-    category_id: int
-    supplier_id: int
+    category_id: Optional[int] = None
+    supplier_id: Optional[int] = None
     asset_code: str
     asset_name: str
     serial_number: Optional[str] = None
