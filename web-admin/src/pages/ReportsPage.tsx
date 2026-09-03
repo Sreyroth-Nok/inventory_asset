@@ -10,20 +10,24 @@ import {
   Boxes, 
   Building2, 
   AlertTriangle,
-  Search
+  Search,
+  UserCheck,
+  Clock,
+  Key
 } from 'lucide-react';
 import { 
   reportsService, 
   type AssetHistoryReportItem, 
   type StockMovementReportItem, 
   type DepartmentSummaryReportItem, 
-  type InventoryStatusReportItem 
+  type InventoryStatusReportItem,
+  type UserLogReportItem
 } from '../services/reportsService';
 import { authService } from '../services/authService';
 import { exportToCSV } from '../utils/csvExporter';
 
 export const ReportsPage: React.FC = () => {
-  const [activeReportTab, setActiveReportTab] = useState<'asset-history' | 'stock-movements' | 'department-summary' | 'inventory-status'>('asset-history');
+  const [activeReportTab, setActiveReportTab] = useState<'asset-history' | 'stock-movements' | 'department-summary' | 'inventory-status' | 'user-logs'>('asset-history');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -38,6 +42,7 @@ export const ReportsPage: React.FC = () => {
   const [stockMovements, setStockMovements] = useState<StockMovementReportItem[]>([]);
   const [departmentSummary, setDepartmentSummary] = useState<DepartmentSummaryReportItem[]>([]);
   const [inventoryStatus, setInventoryStatus] = useState<InventoryStatusReportItem[]>([]);
+  const [userLogs, setUserLogs] = useState<UserLogReportItem[]>([]);
 
   const fetchReportData = async () => {
     setLoading(true);
@@ -66,6 +71,13 @@ export const ReportsPage: React.FC = () => {
           status_filter: statusFilter || undefined
         });
         setInventoryStatus(data);
+      } else if (activeReportTab === 'user-logs') {
+        const data = await reportsService.getUserLogs({
+          start_date: startDate || undefined,
+          end_date: endDate || undefined,
+          status_filter: statusFilter || undefined
+        });
+        setUserLogs(data);
       }
     } catch (err) {
       console.error("Failed to load report data:", err);
@@ -133,6 +145,17 @@ export const ReportsPage: React.FC = () => {
         { label: 'Supplier', key: 'supplier_name' }
       ];
       exportToCSV('Inventory_Status_Report', headers, filteredInventoryStatus);
+    } else if (activeReportTab === 'user-logs') {
+      const headers = [
+        { label: 'Log ID', key: 'log_id' },
+        { label: 'Username', key: 'username' },
+        { label: 'User Role', key: 'role_name' },
+        { label: 'Login Time', key: 'login_time' },
+        { label: 'Logout Time', key: 'logout_time' },
+        { label: 'Session Duration', key: 'session_duration' },
+        { label: 'Status', key: 'status' }
+      ];
+      exportToCSV('User_Access_Audit_Logs', headers, filteredUserLogs);
     }
   };
 
@@ -163,12 +186,17 @@ export const ReportsPage: React.FC = () => {
     item.item_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredUserLogs = userLogs.filter(item =>
+    item.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.role_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
       {/* Top Action Bar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--card-bg)', padding: '0.35rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--card-bg)', padding: '0.35rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)', flexWrap: 'wrap' }}>
           <button
             onClick={() => setActiveReportTab('asset-history')}
             className={`btn ${activeReportTab === 'asset-history' ? 'btn-primary' : 'btn-secondary'}`}
@@ -196,6 +224,13 @@ export const ReportsPage: React.FC = () => {
             style={{ fontSize: '0.825rem', padding: '0.5rem 0.875rem' }}
           >
             <AlertTriangle size={15} /> Inventory Health
+          </button>
+          <button
+            onClick={() => setActiveReportTab('user-logs')}
+            className={`btn ${activeReportTab === 'user-logs' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ fontSize: '0.825rem', padding: '0.5rem 0.875rem' }}
+          >
+            <Clock size={15} /> User Access Logs
           </button>
         </div>
 
@@ -226,8 +261,8 @@ export const ReportsPage: React.FC = () => {
             />
           </div>
 
-          {/* Date Pickers for History / Movements */}
-          {(activeReportTab === 'asset-history' || activeReportTab === 'stock-movements') && (
+          {/* Date Pickers for History / Movements / User Logs */}
+          {(activeReportTab === 'asset-history' || activeReportTab === 'stock-movements' || activeReportTab === 'user-logs') && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>From:</span>
               <input
@@ -275,6 +310,19 @@ export const ReportsPage: React.FC = () => {
             </select>
           )}
 
+          {activeReportTab === 'user-logs' && (
+            <select
+              className="input-control"
+              style={{ fontSize: '0.8rem', padding: '0.4rem 0.6rem' }}
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All Sessions</option>
+              <option value="Active">Active Sessions</option>
+              <option value="Logged Out">Logged Out</option>
+            </select>
+          )}
+
           {activeReportTab === 'inventory-status' && (
             <select
               className="input-control"
@@ -304,6 +352,7 @@ export const ReportsPage: React.FC = () => {
             {activeReportTab === 'stock-movements' && 'Stock Movement Audit Log'}
             {activeReportTab === 'department-summary' && 'Department Asset Allocation'}
             {activeReportTab === 'inventory-status' && 'Inventory Health & Reorder'}
+            {activeReportTab === 'user-logs' && 'User Login & Logout Audit Log'}
           </span>
         </div>
 
@@ -314,10 +363,20 @@ export const ReportsPage: React.FC = () => {
               activeReportTab === 'asset-history' ? filteredAssetHistory.length :
               activeReportTab === 'stock-movements' ? filteredStockMovements.length :
               activeReportTab === 'department-summary' ? filteredDepartmentSummary.length :
-              filteredInventoryStatus.length
+              activeReportTab === 'inventory-status' ? filteredInventoryStatus.length :
+              filteredUserLogs.length
             }
           </span>
         </div>
+
+        {activeReportTab === 'user-logs' && (
+          <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <span style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>Currently Active Sessions</span>
+            <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#10b981' }}>
+              {userLogs.filter(l => l.status === 'Active').length} users online
+            </span>
+          </div>
+        )}
 
         {activeReportTab === 'department-summary' && (
           <div className="card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -515,6 +574,46 @@ export const ReportsPage: React.FC = () => {
                   ))
                 ) : (
                   <tr><td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>No inventory items found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          )}
+
+          {/* TAB 5: User Access & Session Logs */}
+          {activeReportTab === 'user-logs' && (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Log ID</th>
+                  <th>Username</th>
+                  <th>User Role</th>
+                  <th>Login Time</th>
+                  <th>Logout Time</th>
+                  <th>Session Duration</th>
+                  <th>Session Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Loading user access audit logs...</td></tr>
+                ) : filteredUserLogs.length > 0 ? (
+                  filteredUserLogs.map((log) => (
+                    <tr key={log.log_id}>
+                      <td style={{ fontWeight: 700, color: '#818cf8' }}>#{log.log_id}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{log.username}</td>
+                      <td style={{ color: 'var(--text-muted)' }}>{log.role_name}</td>
+                      <td style={{ fontWeight: 600, color: '#10b981' }}>{log.login_time}</td>
+                      <td style={{ color: log.logout_time === '-' ? 'var(--text-dim)' : '#f43f5e' }}>{log.logout_time}</td>
+                      <td style={{ fontWeight: 600 }}>{log.session_duration}</td>
+                      <td>
+                        <span className={`badge ${log.status === 'Active' ? 'badge-active' : 'badge-info'}`}>
+                          {log.status === 'Active' ? '🟢 Active Session' : '⚪ Logged Out'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>No user log records found.</td></tr>
                 )}
               </tbody>
             </table>

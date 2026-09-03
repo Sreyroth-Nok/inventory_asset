@@ -11,9 +11,11 @@ from app.models.department import Department
 from app.models.inventory import InventoryItem
 from app.models.stock_transaction import StockTransaction
 from app.models.user import User
+from app.models.user_log import UserLog
 from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/reports", tags=["Reports & Analytics"])
+
 
 @router.get("/asset-history")
 def get_asset_history_report(
@@ -167,3 +169,56 @@ def get_inventory_status_report(
             "needs_reorder": item.quantity <= item.minimum_stock
         })
     return result
+
+
+@router.get("/user-logs")
+def get_user_logs_report(
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None,
+    username: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Retrieve audit log of user login and logout timestamps and session status"""
+    query = db.query(UserLog)
+    
+    if start_date:
+        query = query.filter(func.date(UserLog.login_time) >= start_date)
+    if end_date:
+        query = query.filter(func.date(UserLog.login_time) <= end_date)
+    if username:
+        query = query.filter(UserLog.username.ilike(f"%{username}%"))
+    if status_filter:
+        query = query.filter(UserLog.status == status_filter)
+        
+    logs = query.order_by(UserLog.login_time.desc()).all()
+    
+    result = []
+    for log in logs:
+        # Calculate session duration if logged out
+        duration_str = "Active Session"
+        if log.logout_time:
+            diff = log.logout_time - log.login_time
+            minutes = int(diff.total_seconds() // 60)
+            if minutes < 60:
+                duration_str = f"{minutes} mins"
+            else:
+                hours = minutes // 60
+                rem_mins = minutes % 60
+                duration_str = f"{hours}h {rem_mins}m"
+
+        user_role = log.user.role.role_name if log.user and log.user.role else "System User"
+        
+        result.append({
+            "log_id": log.log_id,
+            "user_id": log.user_id,
+            "username": log.username,
+            "role_name": user_role,
+            "login_time": log.login_time.strftime("%Y-%m-%d %H:%M:%S") if log.login_time else "-",
+            "logout_time": log.logout_time.strftime("%Y-%m-%d %H:%M:%S") if log.logout_time else "-",
+            "status": log.status,
+            "session_duration": duration_str
+        })
+    return result
+

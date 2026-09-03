@@ -23,4 +23,6 @@ class User(Base):
     employee = relationship("Employee", back_populates="users")
     assignments_created = relationship("AssetAssignment", back_populates="assigner", foreign_keys="AssetAssignment.assigned_by")
     transactions = relationship("StockTransaction", back_populates="user")
+    logs = relationship("UserLog", back_populates="user")
+
 

@@ -8,6 +8,7 @@ from app.models.asset import Asset
 from app.models.asset_assignment import AssetAssignment
 from app.models.inventory import InventoryItem
 from app.models.stock_transaction import StockTransaction
+from app.models.user_log import UserLog
 
 __all__ = [
     "Department",
@@ -19,6 +20,8 @@ __all__ = [
     "Asset",
     "AssetAssignment",
     "InventoryItem",
-    "StockTransaction"
+    "StockTransaction",
+    "UserLog"
 ]
+
 

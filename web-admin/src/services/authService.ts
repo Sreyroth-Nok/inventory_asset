@@ -53,9 +53,16 @@ export const authService = {
     return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
+  logout: async (): Promise<void> => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (err) {
+      console.warn("Logout log recorded");
+    } finally {
+      localStorage.removeItem('token');
+    }
   },
+
 
   isAuthenticated: (): boolean => {
     return !!localStorage.getItem('token');

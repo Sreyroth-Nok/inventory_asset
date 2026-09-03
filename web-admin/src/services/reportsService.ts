@@ -52,6 +52,17 @@ export interface InventoryStatusReportItem {
   needs_reorder: boolean;
 }
 
+export interface UserLogReportItem {
+  log_id: number;
+  user_id: number;
+  username: string;
+  role_name: string;
+  login_time: string;
+  logout_time: string;
+  status: string;
+  session_duration: string;
+}
+
 export const reportsService = {
   getAssetHistory: async (filters?: { start_date?: string; end_date?: string; status_filter?: string }): Promise<AssetHistoryReportItem[]> => {
     const response = await apiClient.get<AssetHistoryReportItem[]>('/reports/asset-history', { params: filters });
@@ -71,5 +82,11 @@ export const reportsService = {
   getInventoryStatus: async (filters?: { status_filter?: string }): Promise<InventoryStatusReportItem[]> => {
     const response = await apiClient.get<InventoryStatusReportItem[]>('/reports/inventory-status', { params: filters });
     return response.data;
+  },
+
+  getUserLogs: async (filters?: { start_date?: string; end_date?: string; status_filter?: string }): Promise<UserLogReportItem[]> => {
+    const response = await apiClient.get<UserLogReportItem[]>('/reports/user-logs', { params: filters });
+    return response.data;
   }
 };
+
