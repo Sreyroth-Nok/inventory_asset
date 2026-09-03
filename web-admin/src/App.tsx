@@ -9,6 +9,7 @@ import { RolesPage } from './pages/RolesPage';
 import { EmployeesPage } from './pages/EmployeesPage';
 import { DepartmentsPage } from './pages/DepartmentsPage';
 import { SuppliersPage } from './pages/SuppliersPage';
+import { ReportsPage } from './pages/ReportsPage';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
       case 'dashboard': return 'Executive Dashboard';
       case 'assets': return 'Asset Inventory Management';
       case 'inventory': return 'Stock & Inventory Control';
+      case 'reports': return 'Reports & Audit Analytics';
       case 'users': return 'System User Accounts';
       case 'roles': return 'Role & Access Control Management';
       case 'employees': return 'Employee Directory';
@@ -33,6 +35,7 @@ export const App: React.FC = () => {
       case 'dashboard': return <DashboardPage />;
       case 'assets': return <AssetsPage />;
       case 'inventory': return <InventoryPage />;
+      case 'reports': return <ReportsPage />;
       case 'users': return <UsersPage />;
       case 'roles': return <RolesPage />;
       case 'employees': return <EmployeesPage />;
@@ -41,6 +44,7 @@ export const App: React.FC = () => {
       default: return <DashboardPage />;
     }
   };
+
 
   return (
     <div className="app-container">

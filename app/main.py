@@ -17,7 +17,8 @@ from app.routers import (
     asset_assignments_router,
     inventory_router,
     stock_transactions_router,
-    dashboard_router
+    dashboard_router,
+    reports_router
 )
 
 # Auto-create tables in database on startup
@@ -54,6 +55,8 @@ app.include_router(asset_assignments_router, prefix=settings.API_V1_STR)
 app.include_router(inventory_router, prefix=settings.API_V1_STR)
 app.include_router(stock_transactions_router, prefix=settings.API_V1_STR)
 app.include_router(dashboard_router, prefix=settings.API_V1_STR)
+app.include_router(reports_router, prefix=settings.API_V1_STR)
+
 
 @app.get("/", tags=["Health Check"])
 def root():

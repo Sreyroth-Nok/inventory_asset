@@ -8,6 +8,7 @@ import {
   UserCheck, 
   Building2, 
   Truck, 
+  FileText,
   LogOut,
   Layers,
   X
@@ -25,12 +26,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, mobil
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'assets', label: 'Asset Management', icon: Package },
     { id: 'inventory', label: 'Stock & Inventory', icon: Boxes },
+    { id: 'reports', label: 'Reports & Analytics', icon: FileText },
     { id: 'users', label: 'User Accounts', icon: Users },
     { id: 'roles', label: 'Role Management', icon: ShieldCheck },
     { id: 'employees', label: 'Employees', icon: UserCheck },
     { id: 'departments', label: 'Departments', icon: Building2 },
     { id: 'suppliers', label: 'Suppliers', icon: Truck },
   ];
+
 
   const handleSelectTab = (id: string) => {
     setActiveTab(id);

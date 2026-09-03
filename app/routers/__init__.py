@@ -10,6 +10,7 @@ from app.routers.asset_assignments import router as asset_assignments_router
 from app.routers.inventory import router as inventory_router
 from app.routers.stock_transactions import router as stock_transactions_router
 from app.routers.dashboard import router as dashboard_router
+from app.routers.reports import router as reports_router
 
 __all__ = [
     "auth_router",
@@ -23,6 +24,8 @@ __all__ = [
     "asset_assignments_router",
     "inventory_router",
     "stock_transactions_router",
-    "dashboard_router"
+    "dashboard_router",
+    "reports_router"
 ]
+
 
