@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Bell, Sparkles, Sun, Moon, Menu, User } from 'lucide-react';
+import { Search, Bell, Sparkles, Sun, Moon, Menu } from 'lucide-react';
 import type { UserProfile } from '../../services/authService';
 
 interface HeaderProps {

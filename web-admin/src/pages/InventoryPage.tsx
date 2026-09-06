@@ -1,27 +1,52 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Search, Trash2, Edit, RefreshCw } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, RefreshCw, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import type { InventoryItem, InventoryItemCreate } from '../types/inventory';
+import type { Supplier } from '../types/supplier';
 import { inventoryService } from '../services/inventoryService';
+import { supplierService } from '../services/supplierService';
+import { stockTransactionService } from '../services/stockTransactionService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
 import { canDeleteRecords } from '../utils/rbac';
 
 export const InventoryPage: React.FC = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
 
-
-  // Modal State
+  // CRUD Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Stock In Modal State
+  const [isStockInModalOpen, setIsStockInModalOpen] = useState(false);
+  const [selectedForStockIn, setSelectedForStockIn] = useState<InventoryItem | null>(null);
+  const [stockInForm, setStockInForm] = useState({
+    quantity: 10,
+    reference: '',
+    reason: 'Received from supplier',
+    remarks: ''
+  });
+
+  // Stock Out Modal State
+  const [isStockOutModalOpen, setIsStockOutModalOpen] = useState(false);
+  const [selectedForStockOut, setSelectedForStockOut] = useState<InventoryItem | null>(null);
+  const [stockOutForm, setStockOutForm] = useState({
+    quantity: 1,
+    reference: '',
+    reason: 'Issued to staff/department',
+    remarks: ''
+  });
+
   const initialFormState: InventoryItemCreate = {
     item_code: '',
     item_name: '',
+    supplier_id: undefined,
+    category: 'General',
     quantity: 0,
     minimum_stock: 5,
     unit: 'Piece',
@@ -36,21 +61,24 @@ export const InventoryPage: React.FC = () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const [data, userProfile] = await Promise.all([
+      const [data, supData, userProfile] = await Promise.all([
         inventoryService.getInventoryItems(searchTerm),
+        supplierService.getSuppliers().catch(() => []),
         authService.getCurrentUser().catch(() => null)
       ]);
       setItems(data);
-      if (userProfile?.role?.role_name) {
-        setCurrentUserRole(userProfile.role.role_name);
-      }
+      setSuppliers(supData);
+
+      const roleStr = typeof userProfile?.role === 'string'
+        ? userProfile.role
+        : userProfile?.role?.role_name || '';
+      setCurrentUserRole(roleStr);
     } catch (err) {
       console.error("Error fetching inventory items:", err);
     } finally {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchInventory();
@@ -60,6 +88,7 @@ export const InventoryPage: React.FC = () => {
     setEditingItem(null);
     setFormData({
       ...initialFormState,
+      supplier_id: suppliers.length > 0 ? suppliers[0].supplier_id : undefined,
       item_code: `INV-${Math.floor(1000 + Math.random() * 9000)}`
     });
     setFormError(null);
@@ -71,6 +100,8 @@ export const InventoryPage: React.FC = () => {
     setFormData({
       item_code: item.item_code,
       item_name: item.item_name,
+      supplier_id: item.supplier_id || (suppliers.length > 0 ? suppliers[0].supplier_id : undefined),
+      category: item.category || 'General',
       quantity: item.quantity,
       minimum_stock: item.minimum_stock,
       unit: item.unit || 'Piece',
@@ -97,7 +128,14 @@ export const InventoryPage: React.FC = () => {
       fetchInventory();
     } catch (err: any) {
       console.error("Failed to save inventory item:", err);
-      setFormError(err.response?.data?.detail || "Failed to save inventory item. Please try again.");
+      const detail = err.response?.data?.detail;
+      let msg = "Failed to save inventory item. Please try again.";
+      if (typeof detail === 'string') {
+        msg = detail;
+      } else if (Array.isArray(detail)) {
+        msg = detail.map((d: any) => `${d.loc ? d.loc.join('.') + ': ' : ''}${d.msg}`).join(', ');
+      }
+      setFormError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -111,6 +149,80 @@ export const InventoryPage: React.FC = () => {
       } catch (err) {
         alert("Failed to delete inventory item.");
       }
+    }
+  };
+
+  // Open Stock In Modal
+  const handleOpenStockIn = (item: InventoryItem) => {
+    setSelectedForStockIn(item);
+    setStockInForm({
+      quantity: 10,
+      reference: `PO-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      reason: 'Stock replenishment received from vendor',
+      remarks: ''
+    });
+    setFormError(null);
+    setIsStockInModalOpen(true);
+  };
+
+  // Submit Stock In
+  const handleStockInSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedForStockIn) return;
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await stockTransactionService.performStockIn({
+        inventory_id: selectedForStockIn.inventory_id,
+        quantity: stockInForm.quantity,
+        reference: stockInForm.reference,
+        reason: stockInForm.reason,
+        remarks: stockInForm.remarks
+      });
+      setIsStockInModalOpen(false);
+      fetchInventory();
+    } catch (err: any) {
+      console.error("Stock In failed:", err);
+      setFormError(err.response?.data?.detail || "Failed to process Stock In.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open Stock Out Modal
+  const handleOpenStockOut = (item: InventoryItem) => {
+    setSelectedForStockOut(item);
+    setStockOutForm({
+      quantity: 1,
+      reference: `ISS-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      reason: 'Issued for department usage',
+      remarks: ''
+    });
+    setFormError(null);
+    setIsStockOutModalOpen(true);
+  };
+
+  // Submit Stock Out
+  const handleStockOutSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedForStockOut) return;
+    setSubmitting(true);
+    setFormError(null);
+    try {
+      await stockTransactionService.performStockOut({
+        inventory_id: selectedForStockOut.inventory_id,
+        quantity: stockOutForm.quantity,
+        reference: stockOutForm.reference,
+        reason: stockOutForm.reason,
+        remarks: stockOutForm.remarks
+      });
+      setIsStockOutModalOpen(false);
+      fetchInventory();
+    } catch (err: any) {
+      console.error("Stock Out failed:", err);
+      setFormError(err.response?.data?.detail || "Failed to process Stock Out.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -189,12 +301,32 @@ export const InventoryPage: React.FC = () => {
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.4rem' }}>
+                        
+                        {/* Stock In Button */}
+                        <button
+                          onClick={() => handleOpenStockIn(item)}
+                          className="btn btn-secondary"
+                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}
+                          title="Stock In (+ Quantity)"
+                        >
+                          <ArrowUpRight size={13} /> Stock In
+                        </button>
+
+                        {/* Stock Out Button */}
+                        <button
+                          onClick={() => handleOpenStockOut(item)}
+                          className="btn btn-secondary"
+                          style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', color: '#f43f5e', borderColor: 'rgba(244, 63, 94, 0.3)' }}
+                          title="Stock Out (- Quantity)"
+                        >
+                          <ArrowDownRight size={13} /> Stock Out
+                        </button>
+
                         <button onClick={() => handleOpenEditModal(item)} className="btn btn-secondary" style={{ padding: '0.35rem 0.6rem' }}><Edit size={14} /></button>
                         {canDeleteRecords(currentUserRole) && (
                           <button onClick={() => handleDelete(item.inventory_id)} className="btn btn-danger" style={{ padding: '0.35rem 0.6rem' }}><Trash2 size={14} /></button>
                         )}
-
                       </div>
                     </td>
                   </tr>
@@ -244,6 +376,38 @@ export const InventoryPage: React.FC = () => {
                 value={formData.item_name}
                 onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
               />
+            </div>
+          </div>
+
+          <div className="form-grid-2">
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Category</label>
+              <input
+                type="text"
+                placeholder="e.g. Office Supplies, IT Accessories"
+                className="input-control"
+                value={formData.category || ''}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Supplier *</label>
+              <select
+                required
+                className="input-control"
+                value={formData.supplier_id || ''}
+                onChange={(e) => setFormData({ ...formData, supplier_id: parseInt(e.target.value) || undefined })}
+              >
+                {suppliers.length > 0 ? (
+                  suppliers.map((sup) => (
+                    <option key={sup.supplier_id} value={sup.supplier_id}>
+                      {sup.supplier_name}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No suppliers available</option>
+                )}
+              </select>
             </div>
           </div>
 
@@ -323,6 +487,160 @@ export const InventoryPage: React.FC = () => {
             </button>
             <button type="submit" disabled={submitting} className="btn btn-primary">
               {submitting ? "Saving..." : editingItem ? "Update Item" : "Create Item"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Stock In Modal */}
+      <Modal
+        isOpen={isStockInModalOpen}
+        onClose={() => setIsStockInModalOpen(false)}
+        title={`Stock In (+ Recieve Stock): ${selectedForStockIn?.item_name} (${selectedForStockIn?.item_code})`}
+      >
+        <form onSubmit={handleStockInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {formError && (
+            <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.85rem' }}>
+              {formError}
+            </div>
+          )}
+
+          <div style={{ padding: '0.75rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)', fontSize: '0.85rem', color: '#10b981' }}>
+            Current Stock on Hand: <strong>{selectedForStockIn?.quantity} {selectedForStockIn?.unit || 'items'}</strong>
+          </div>
+
+          <div className="form-grid-2">
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Quantity to Add *</label>
+              <input
+                type="number"
+                required
+                min="1"
+                className="input-control"
+                value={stockInForm.quantity}
+                onChange={(e) => setStockInForm({ ...stockInForm, quantity: parseInt(e.target.value) || 1 })}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Reference / PO Code</label>
+              <input
+                type="text"
+                placeholder="e.g. PO-2026-005"
+                className="input-control"
+                value={stockInForm.reference}
+                onChange={(e) => setStockInForm({ ...stockInForm, reference: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Reason for Addition</label>
+            <input
+              type="text"
+              placeholder="e.g. Received shipment from ABC Supplier"
+              className="input-control"
+              value={stockInForm.reason}
+              onChange={(e) => setStockInForm({ ...stockInForm, reason: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Remarks / Notes</label>
+            <textarea
+              className="input-control"
+              rows={2}
+              placeholder="e.g. Inspected and verified in warehouse..."
+              value={stockInForm.remarks}
+              onChange={(e) => setStockInForm({ ...stockInForm, remarks: e.target.value })}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button type="button" onClick={() => setIsStockInModalOpen(false)} className="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={submitting || stockInForm.quantity <= 0} className="btn btn-primary">
+              {submitting ? "Processing..." : "Confirm Stock In (+)"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Stock Out Modal */}
+      <Modal
+        isOpen={isStockOutModalOpen}
+        onClose={() => setIsStockOutModalOpen(false)}
+        title={`Stock Out (- Issue Stock): ${selectedForStockOut?.item_name} (${selectedForStockOut?.item_code})`}
+      >
+        <form onSubmit={handleStockOutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {formError && (
+            <div style={{ padding: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', color: '#fca5a5', fontSize: '0.85rem' }}>
+              {formError}
+            </div>
+          )}
+
+          <div style={{ padding: '0.75rem', background: 'rgba(244, 63, 94, 0.1)', borderRadius: '8px', border: '1px solid rgba(244, 63, 94, 0.25)', fontSize: '0.85rem', color: '#f43f5e' }}>
+            Current Available Stock: <strong>{selectedForStockOut?.quantity} {selectedForStockOut?.unit || 'items'}</strong>
+          </div>
+
+          <div className="form-grid-2">
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Quantity to Remove *</label>
+              <input
+                type="number"
+                required
+                min="1"
+                max={selectedForStockOut?.quantity || 1}
+                className="input-control"
+                value={stockOutForm.quantity}
+                onChange={(e) => setStockOutForm({ ...stockOutForm, quantity: parseInt(e.target.value) || 1 })}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Reference / Issue Voucher</label>
+              <input
+                type="text"
+                placeholder="e.g. ISS-2026-012"
+                className="input-control"
+                value={stockOutForm.reference}
+                onChange={(e) => setStockOutForm({ ...stockOutForm, reference: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Reason for Issue / Removal</label>
+            <input
+              type="text"
+              placeholder="e.g. Distributed to IT Department"
+              className="input-control"
+              value={stockOutForm.reason}
+              onChange={(e) => setStockOutForm({ ...stockOutForm, reason: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Remarks / Notes</label>
+            <textarea
+              className="input-control"
+              rows={2}
+              placeholder="e.g. Received by Dara..."
+              value={stockOutForm.remarks}
+              onChange={(e) => setStockOutForm({ ...stockOutForm, remarks: e.target.value })}
+            />
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button type="button" onClick={() => setIsStockOutModalOpen(false)} className="btn btn-secondary">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || stockOutForm.quantity <= 0 || (selectedForStockOut ? stockOutForm.quantity > selectedForStockOut.quantity : true)}
+              className="btn btn-danger"
+              style={{ padding: '0.625rem 1.25rem', fontWeight: 700 }}
+            >
+              {submitting ? "Processing..." : "Confirm Stock Out (-)"}
             </button>
           </div>
         </form>

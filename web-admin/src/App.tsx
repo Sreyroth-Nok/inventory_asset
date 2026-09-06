@@ -108,7 +108,7 @@ export const App: React.FC = () => {
     }
 
     switch (activeTab) {
-      case 'dashboard': return <DashboardPage />;
+      case 'dashboard': return <DashboardPage onNavigate={setActiveTab} />;
       case 'assets': return <AssetsPage />;
       case 'inventory': return <InventoryPage />;
       case 'reports': return <ReportsPage />;
@@ -117,7 +117,7 @@ export const App: React.FC = () => {
       case 'employees': return <EmployeesPage />;
       case 'departments': return <DepartmentsPage />;
       case 'suppliers': return <SuppliersPage />;
-      default: return <DashboardPage />;
+      default: return <DashboardPage onNavigate={setActiveTab} />;
     }
   };
 

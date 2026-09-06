@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { 
-  FileText, 
   Download, 
   Printer, 
-  Filter, 
   RefreshCw, 
-  Calendar, 
   Package, 
   Boxes, 
   Building2, 
   AlertTriangle,
   Search,
-  UserCheck,
-  Clock,
-  Key
+  Clock
 } from 'lucide-react';
 import { 
   reportsService, 

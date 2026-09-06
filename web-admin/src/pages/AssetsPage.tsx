@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Search, Trash2, Edit, RefreshCw, UserCheck, UserX, User as UserIcon } from 'lucide-react';
 import type { Asset, AssetCreate } from '../types/asset';
 import type { Employee } from '../types/employee';
+import type { AssetCategory } from '../types/category';
+import type { Supplier } from '../types/supplier';
 import { assetService } from '../services/assetService';
 import { employeeService } from '../services/employeeService';
+import { categoryService } from '../services/categoryService';
+import { supplierService } from '../services/supplierService';
 import { assetAssignmentService } from '../services/assetAssignmentService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
@@ -12,6 +16,8 @@ import { canDeleteRecords } from '../utils/rbac';
 export const AssetsPage: React.FC = () => {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [categories, setCategories] = useState<AssetCategory[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [currentUserRole, setCurrentUserRole] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -44,6 +50,8 @@ export const AssetsPage: React.FC = () => {
   const initialFormState: AssetCreate = {
     asset_code: '',
     asset_name: '',
+    category_id: undefined,
+    supplier_id: undefined,
     serial_number: '',
     purchase_price: 0,
     condition: 'Good',
@@ -57,22 +65,27 @@ export const AssetsPage: React.FC = () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const [assetData, empData, userProfile] = await Promise.all([
+      const [assetData, empData, catData, supData, userProfile] = await Promise.all([
         assetService.getAssets(searchTerm),
         employeeService.getEmployees().catch(() => []),
+        categoryService.getCategories().catch(() => []),
+        supplierService.getSuppliers().catch(() => []),
         authService.getCurrentUser().catch(() => null)
       ]);
       setAssets(assetData);
       setEmployees(empData);
-      if (userProfile?.role?.role_name) {
-        setCurrentUserRole(userProfile.role.role_name);
-      }
+      setCategories(catData);
+      setSuppliers(supData);
+      
+      const roleStr = typeof userProfile?.role === 'string'
+        ? userProfile.role
+        : userProfile?.role?.role_name || '';
+      setCurrentUserRole(roleStr);
     } catch (err) {
       console.error("Error fetching assets:", err);
     } finally {
       setLoading(false);
     }
-
   };
 
   useEffect(() => {
@@ -83,6 +96,8 @@ export const AssetsPage: React.FC = () => {
     setEditingAsset(null);
     setFormData({
       ...initialFormState,
+      category_id: categories.length > 0 ? categories[0].category_id : undefined,
+      supplier_id: suppliers.length > 0 ? suppliers[0].supplier_id : undefined,
       asset_code: `AST-${Math.floor(1000 + Math.random() * 9000)}`
     });
     setFormError(null);
@@ -94,6 +109,8 @@ export const AssetsPage: React.FC = () => {
     setFormData({
       asset_code: asset.asset_code,
       asset_name: asset.asset_name,
+      category_id: asset.category_id || (categories.length > 0 ? categories[0].category_id : undefined),
+      supplier_id: asset.supplier_id || (suppliers.length > 0 ? suppliers[0].supplier_id : undefined),
       serial_number: asset.serial_number || '',
       purchase_price: asset.purchase_price ? Number(asset.purchase_price) : 0,
       condition: asset.condition || 'Good',
@@ -287,7 +304,7 @@ export const AssetsPage: React.FC = () => {
                           {asset.assigned_to.employee_name} ({asset.assigned_to.employee_code})
                         </div>
                       ) : (
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', italic: 'true' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
                           Unassigned (In Storage)
                         </span>
                       )}
@@ -382,6 +399,39 @@ export const AssetsPage: React.FC = () => {
                 value={formData.asset_name}
                 onChange={(e) => setFormData({ ...formData, asset_name: e.target.value })}
               />
+            </div>
+          </div>
+
+          <div className="form-grid-2">
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Asset Category *</label>
+              <select
+                required
+                className="input-control"
+                value={formData.category_id || ''}
+                onChange={(e) => setFormData({ ...formData, category_id: parseInt(e.target.value) || undefined })}
+              >
+                {categories.map((cat) => (
+                  <option key={cat.category_id} value={cat.category_id}>
+                    {cat.category_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.35rem' }}>Supplier *</label>
+              <select
+                required
+                className="input-control"
+                value={formData.supplier_id || ''}
+                onChange={(e) => setFormData({ ...formData, supplier_id: parseInt(e.target.value) || undefined })}
+              >
+                {suppliers.map((sup) => (
+                  <option key={sup.supplier_id} value={sup.supplier_id}>
+                    {sup.supplier_name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

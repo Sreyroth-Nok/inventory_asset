@@ -3,7 +3,11 @@ import { Package, Boxes, AlertTriangle, Users, TrendingUp, RefreshCw, Plus } fro
 import { dashboardService, type DashboardStats } from '../services/dashboardService';
 import { authService } from '../services/authService';
 
-export const DashboardPage: React.FC = () => {
+interface DashboardPageProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -168,15 +172,15 @@ export const DashboardPage: React.FC = () => {
           <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>API Operations</h3>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'flex-start' }}>
+            <button onClick={() => onNavigate?.('assets')} className="btn btn-primary" style={{ width: '100%', justifyContent: 'flex-start' }}>
               <Plus size={18} /> Register New Asset
             </button>
 
-            <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
+            <button onClick={() => onNavigate?.('inventory')} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
               <Boxes size={18} color="#06b6d4" /> Record Stock Movement
             </button>
 
-            <button className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
+            <button onClick={() => onNavigate?.('users')} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
               <Users size={18} color="#10b981" /> Add User Account
             </button>
           </div>

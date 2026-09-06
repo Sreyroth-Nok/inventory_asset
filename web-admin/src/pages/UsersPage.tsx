@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Shield, Trash2, Edit, RefreshCw } from 'lucide-react';
 import type { User, UserCreate } from '../types/user';
+import type { Role } from '../types/role';
 import { userService } from '../services/userService';
+import { roleService } from '../services/roleService';
 import { authService } from '../services/authService';
 import { Modal } from '../components/common/Modal';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal State
@@ -31,8 +34,12 @@ export const UsersPage: React.FC = () => {
     setLoading(true);
     try {
       await authService.ensureAuthenticated();
-      const data = await userService.getUsers();
-      setUsers(data);
+      const [userData, roleData] = await Promise.all([
+        userService.getUsers(),
+        roleService.getRoles().catch(() => [])
+      ]);
+      setUsers(userData);
+      setRoles(roleData);
     } catch (err) {
       console.error("Error fetching users:", err);
     } finally {
@@ -260,9 +267,19 @@ export const UsersPage: React.FC = () => {
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="Admin">Admin</option>
-                <option value="Inventory Staff">Inventory Staff</option>
-                <option value="Manager">Manager</option>
+                {roles.length > 0 ? (
+                  roles.map((r) => (
+                    <option key={r.role_id} value={r.role_name}>
+                      {r.role_name}
+                    </option>
+                  ))
+                ) : (
+                  <>
+                    <option value="Admin">Admin</option>
+                    <option value="Warehouse Manager">Warehouse Manager</option>
+                    <option value="Inventory Staff">Inventory Staff</option>
+                  </>
+                )}
               </select>
             </div>
             <div>
