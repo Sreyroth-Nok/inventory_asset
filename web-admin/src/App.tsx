@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { LogOut, AlertTriangle, ShieldAlert } from 'lucide-react';
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+
+import { CustomThemeProvider } from './context/ThemeContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
 import { DashboardPage } from './pages/DashboardPage';
@@ -16,7 +24,7 @@ import { Modal } from './components/common/Modal';
 import { authService, type UserProfile } from './services/authService';
 import { canAccessTab } from './utils/rbac';
 
-export const App: React.FC = () => {
+export const AppContent: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => authService.isAuthenticated());
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loadingAuth, setLoadingAuth] = useState<boolean>(true);
@@ -72,7 +80,6 @@ export const App: React.FC = () => {
     ? currentUser.role
     : currentUser?.role?.role_name;
 
-
   const getPageTitle = () => {
     switch (activeTab) {
       case 'dashboard': return 'Executive Dashboard';
@@ -92,18 +99,20 @@ export const App: React.FC = () => {
     // Check if the current user role has access to the requested tab
     if (userRole && !canAccessTab(userRole, activeTab)) {
       return (
-        <div className="card animate-fade-in" style={{ padding: '2.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ShieldAlert size={32} color="#f87171" />
-          </div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)' }}>Access Restricted</h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', maxWidth: '420px', lineHeight: 1.5 }}>
-            Your account role (<strong>{userRole}</strong>) does not have permission to view the <strong>{activeTab}</strong> page.
-          </p>
-          <button onClick={() => setActiveTab('dashboard')} className="btn btn-primary" style={{ marginTop: '0.5rem' }}>
-            Return to Dashboard
-          </button>
-        </div>
+        <Card sx={{ p: 4, textAlign: 'center', maxWidth: 480, mx: 'auto', my: 4 }}>
+          <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ width: 56, height: 56, borderRadius: 3, bgcolor: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <ShieldAlert size={32} color="#f87171" />
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>Access Restricted</Typography>
+            <Typography variant="body2" color="text.secondary">
+              Your account role (<strong>{userRole}</strong>) does not have permission to view the <strong>{activeTab}</strong> page.
+            </Typography>
+            <Button variant="contained" onClick={() => setActiveTab('dashboard')} sx={{ mt: 1 }}>
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
       );
     }
 
@@ -123,18 +132,21 @@ export const App: React.FC = () => {
 
   if (loadingAuth) {
     return (
-      <div style={{
+      <Box sx={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#020617',
-        color: '#818cf8',
-        fontSize: '1rem',
-        fontWeight: 600
+        gap: 2,
+        bgcolor: 'background.default',
+        color: 'primary.main',
       }}>
-        Initializing Inventra Admin Portal...
-      </div>
+        <CircularProgress color="primary" />
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          Initializing Inventra Admin Portal...
+        </Typography>
+      </Box>
     );
   }
 
@@ -143,8 +155,8 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="app-container">
-      {/* Sidebar Navigation */}
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Responsive Sidebar Navigation */}
       <Sidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab} 
@@ -155,7 +167,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="main-content">
+      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Header Bar */}
         <Header 
           title={getPageTitle()} 
@@ -164,10 +176,10 @@ export const App: React.FC = () => {
         />
 
         {/* Dynamic Page View Body */}
-        <main className="page-body">
+        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 } }}>
           {renderContent()}
-        </main>
-      </div>
+        </Box>
+      </Box>
 
       {/* Logout Confirmation Modal */}
       <Modal
@@ -175,47 +187,55 @@ export const App: React.FC = () => {
         onClose={() => setIsLogoutModalOpen(false)}
         title="Confirm Sign Out"
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: '1rem',
-            padding: '1rem',
-            background: 'rgba(244, 63, 94, 0.1)',
+            gap: 2,
+            p: 2,
+            bgcolor: 'rgba(244, 63, 94, 0.1)',
             border: '1px solid rgba(244, 63, 94, 0.25)',
-            borderRadius: '12px'
+            borderRadius: 3
           }}>
             <AlertTriangle size={28} color="#f43f5e" style={{ flexShrink: 0 }} />
-            <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#fca5a5', margin: 0 }}>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#fca5a5' }}>
                 Are you sure you want to sign out?
-              </h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.25rem', lineHeight: 1.4 }}>
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', lineHeight: 1.4 }}>
                 You will be logged out of your session as <strong>{currentUser?.username || 'user'}</strong> and returned to the login screen.
-              </p>
-            </div>
-          </div>
+              </Typography>
+            </Box>
+          </Box>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
-            <button
-              type="button"
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1.5, mt: 1 }}>
+            <Button
+              variant="outlined"
               onClick={() => setIsLogoutModalOpen(false)}
-              className="btn btn-secondary"
             >
               Cancel
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
               onClick={handleConfirmLogout}
-              className="btn btn-danger"
-              style={{ padding: '0.625rem 1.25rem', fontWeight: 700 }}
+              startIcon={<LogOut size={16} />}
+              sx={{ fontWeight: 700 }}
             >
-              <LogOut size={16} /> Yes, Sign Out
-            </button>
-          </div>
-        </div>
+              Yes, Sign Out
+            </Button>
+          </Box>
+        </Box>
       </Modal>
-    </div>
+    </Box>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <CustomThemeProvider>
+      <AppContent />
+    </CustomThemeProvider>
   );
 };
 

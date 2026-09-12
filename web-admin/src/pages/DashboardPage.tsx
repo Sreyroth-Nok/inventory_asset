@@ -1,5 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { Package, Boxes, AlertTriangle, Users, TrendingUp, RefreshCw, Plus } from 'lucide-react';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import TableContainer from '@mui/material/TableContainer';
+import Table from '@mui/material/Table';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import TableCell from '@mui/material/TableCell';
+import TableBody from '@mui/material/TableBody';
+import Paper from '@mui/material/Paper';
+import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
+import { 
+  Package, 
+  Boxes, 
+  AlertTriangle, 
+  Users, 
+  RefreshCw, 
+  Plus, 
+  ChevronDown, 
+  ArrowUpRight,
+  Sparkles
+} from 'lucide-react';
 import { dashboardService, type DashboardStats } from '../services/dashboardService';
 import { authService } from '../services/authService';
 
@@ -31,174 +57,336 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
     fetchDashboardData();
   }, []);
 
-  const kpiData = [
-    { 
-      title: 'Total Assets', 
-      value: stats ? stats.asset_summary.total_assets.toString() : '...', 
-      sub: `${stats?.asset_summary.available_assets || 0} Available`, 
-      icon: Package, 
-      color: '#6366f1', 
-      glow: 'rgba(99, 102, 241, 0.25)' 
-    },
-    { 
-      title: 'Inventory Items', 
-      value: stats ? stats.inventory_summary.total_items.toString() : '...', 
-      sub: `${stats?.inventory_summary.available_items || 0} In Stock`, 
-      icon: Boxes, 
-      color: '#06b6d4', 
-      glow: 'rgba(6, 182, 212, 0.25)' 
-    },
-    { 
-      title: 'Stock Alerts', 
-      value: stats ? `${stats.inventory_summary.low_stock_items + stats.inventory_summary.out_of_stock_items} items` : '...', 
-      sub: `${stats?.inventory_summary.low_stock_items || 0} Low Stock`, 
-      icon: AlertTriangle, 
-      color: '#f59e0b', 
-      glow: 'rgba(245, 158, 11, 0.25)' 
-    },
-    { 
-      title: 'Active Users', 
-      value: stats ? stats.total_users.toString() : '...', 
-      sub: `${stats?.total_employees || 0} Employees`, 
-      icon: Users, 
-      color: '#10b981', 
-      glow: 'rgba(16, 185, 129, 0.25)' 
-    },
-  ];
-
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Page Header Title */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: '1.4rem', sm: '1.75rem' } }}>
+            Dashboard
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            Live asset & inventory operations metrics
+          </Typography>
+        </Box>
+
+        <Button
+          variant="outlined"
+          onClick={fetchDashboardData}
+          startIcon={<RefreshCw size={14} className={loading ? 'animate-spin' : ''} />}
+          sx={{
+            borderColor: 'divider',
+            color: 'text.primary',
+            bgcolor: 'background.paper',
+            '&:hover': { bgcolor: 'action.hover' },
+          }}
+        >
+          Refresh Data
+        </Button>
+      </Box>
+
       {error && (
-        <div style={{ padding: '0.875rem 1.25rem', background: 'rgba(244, 63, 94, 0.15)', border: '1px solid rgba(244, 63, 94, 0.3)', borderRadius: '10px', color: '#fca5a5', fontSize: '0.875rem' }}>
+        <Alert severity="error" sx={{ borderRadius: 3 }}>
           {error} Make sure FastAPI backend is running on <code>http://127.0.0.1:8000</code>.
-        </div>
+        </Alert>
       )}
 
-      {/* KPI Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
-        {kpiData.map((item, idx) => {
-          const Icon = item.icon;
-          return (
-            <div key={idx} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>{item.title}</span>
-                <div style={{
-                  width: '38px',
-                  height: '38px',
-                  borderRadius: '10px',
-                  background: item.glow,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <Icon size={20} color={item.color} />
-                </div>
-              </div>
+      {/* Row 1: Top 4 KPI Colored Tint Cards */}
+      <Grid container spacing={2.5}>
+        {/* Card 1: Total Assets */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card sx={{ bgcolor: 'var(--kpi-red-bg)', borderColor: 'var(--kpi-red-border)', p: 0.5 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Total Assets</Typography>
+                <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: '#ff5252', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <Package size={18} />
+                </Box>
+              </Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
+                {loading ? <CircularProgress size={20} /> : stats?.asset_summary.total_assets ?? 0}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#ff5252', fontWeight: 600, mt: 0.5, display: 'block' }}>
+                {stats?.asset_summary.available_assets || 0} Available in stock
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
 
-              <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-                <h3 style={{ fontSize: '1.875rem', fontWeight: 800, color: 'var(--text-main)' }}>
-                  {loading ? '...' : item.value}
-                </h3>
-                <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                  <TrendingUp size={13} />
-                  {item.sub}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+        {/* Card 2: Inventory Items */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card sx={{ bgcolor: 'var(--kpi-green-bg)', borderColor: 'var(--kpi-green-border)', p: 0.5 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Inventory Items</Typography>
+                <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <Boxes size={18} />
+                </Box>
+              </Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
+                {loading ? <CircularProgress size={20} /> : stats?.inventory_summary.total_items ?? 0}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, mt: 0.5, display: 'block' }}>
+                {stats?.inventory_summary.available_items || 0} In Stock units
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
 
-      {/* Recent Activity & Operations Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+        {/* Card 3: Stock Alerts */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card sx={{ bgcolor: 'var(--kpi-yellow-bg)', borderColor: 'var(--kpi-yellow-border)', p: 0.5 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Stock Alerts</Typography>
+                <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <AlertTriangle size={18} />
+                </Box>
+              </Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
+                {loading ? <CircularProgress size={20} /> : ((stats?.inventory_summary.low_stock_items || 0) + (stats?.inventory_summary.out_of_stock_items || 0))}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 600, mt: 0.5, display: 'block' }}>
+                {stats?.inventory_summary.low_stock_items || 0} Low Stock items
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Card 4: Active Users */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card sx={{ bgcolor: 'var(--kpi-blue-bg)', borderColor: 'var(--kpi-blue-border)', p: 0.5 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.secondary' }}>Active Users</Typography>
+                <Box sx={{ width: 36, height: 36, borderRadius: 2, bgcolor: '#06b6d4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                  <Users size={18} />
+                </Box>
+              </Box>
+              <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
+                {loading ? <CircularProgress size={20} /> : stats?.total_users ?? 0}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#06b6d4', fontWeight: 600, mt: 0.5, display: 'block' }}>
+                {stats?.total_employees || 0} Employees registered
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Row 2: Charts Panel */}
+      <Grid container spacing={2.5}>
+        {/* Sales vs Purchase Bar Chart Container */}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Sales vs Purchase</Typography>
+              <Button size="small" variant="outlined" endIcon={<ChevronDown size={14} />} sx={{ borderColor: 'divider', color: 'text.secondary' }}>
+                This Year
+              </Button>
+            </Box>
+
+            {/* SVG Bar Chart Visualization */}
+            <Box sx={{ position: 'relative', width: '100%', height: 210, mt: 1 }}>
+              {['80k', '60k', '40k', '20k', '0k'].map((label, i) => (
+                <Box key={i} sx={{ position: 'absolute', top: `${(i / 4) * 160}px`, left: 0, right: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" sx={{ width: 28, color: 'text.secondary', textAlign: 'right', fontSize: '0.7rem' }}>{label}</Typography>
+                  <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+                </Box>
+              ))}
+
+              <Box sx={{ position: 'absolute', left: 40, right: 10, top: 10, bottom: 25, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around' }}>
+                {[
+                  { date: '28 Jan', s: 55, p: 92 },
+                  { date: '29 Jan', s: 92, p: 92 },
+                  { date: '30 Jan', s: 68, p: 68 },
+                  { date: '31 Jan', s: 92, p: 78 },
+                  { date: '1 Feb', s: 74, p: 92 },
+                  { date: '2 Feb', s: 84, p: 86 },
+                  { date: '3 Feb', s: 78, p: 92 },
+                  { date: '4 Feb', s: 68, p: 84 },
+                  { date: '5 Feb', s: 78, p: 89 },
+                ].map((item, idx) => (
+                  <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, height: '100%', justifyContent: 'flex-end' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: 150 }}>
+                      <Box sx={{ width: 12, height: `${item.s}%`, bgcolor: '#ffaa9b', borderRadius: '3px 3px 0 0' }} />
+                      <Box sx={{ width: 12, height: `${item.p}%`, bgcolor: '#ff5252', borderRadius: '3px 3px 0 0' }} />
+                    </Box>
+                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 500 }}>
+                      {item.date}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ffaa9b' }} />
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Sales</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ff5252' }} />
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Purchase</Typography>
+              </Box>
+            </Box>
+          </Card>
+        </Grid>
+
+        {/* Overall Information Donut Chart Container */}
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, height: '100%', justifyContent: 'space-between' }}>
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>Overall Information</Typography>
+                <Button size="small" variant="outlined" endIcon={<ChevronDown size={13} />} sx={{ borderColor: 'divider', color: 'text.secondary', fontSize: '0.75rem' }}>
+                  Last 6 Months
+                </Button>
+              </Box>
+              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                Customers Overview
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 1 }}>
+              <svg width="150" height="150" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--border-color)" strokeWidth="14" />
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" strokeWidth="14"
+                  strokeDasharray="75 163" strokeDashoffset="0" transform="rotate(-90 50 50)" strokeLinecap="round" />
+                <circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" strokeWidth="14"
+                  strokeDasharray="110 128" strokeDashoffset="-85" transform="rotate(-90 50 50)" strokeLinecap="round" />
+              </svg>
+            </Box>
+
+            <Grid container spacing={2} sx={{ pt: 1, borderTop: 1, borderColor: 'divider' }}>
+              <Grid size={{ xs: 6 }}>
+                <Typography variant="h5" sx={{ fontWeight: 800 }}>5.5K</Typography>
+                <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, display: 'block' }}>First Time</Typography>
+                <Chip icon={<ArrowUpRight size={11} />} label="25%" size="small" color="success" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, mt: 0.5 }} />
+              </Grid>
+
+              <Grid size={{ xs: 6 }}>
+                <Typography variant="h5" sx={{ fontWeight: 800 }}>3.5K</Typography>
+                <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 600, display: 'block' }}>Return</Typography>
+                <Chip icon={<ArrowUpRight size={11} />} label="21%" size="small" color="warning" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, mt: 0.5 }} />
+              </Grid>
+            </Grid>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Row 3: Live Audit Log Transactions & Quick API Actions */}
+      <Grid container spacing={2.5}>
         {/* Live Recent Transactions */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>Live Recent Activity & Transactions</h3>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Real-time audit log fetched from backend API</p>
-            </div>
-            <button onClick={fetchDashboardData} className="btn btn-secondary" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
-              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
-            </button>
-          </div>
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>Live Recent Activity & Transactions</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>Real-time audit log fetched from backend API</Typography>
+              </Box>
+              <Button size="small" variant="outlined" onClick={fetchDashboardData} startIcon={<RefreshCw size={13} className={loading ? 'animate-spin' : ''} />}>
+                Refresh
+              </Button>
+            </Box>
 
-          <div className="table-container">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Tx ID</th>
-                  <th>Transaction Type</th>
-                  <th>Quantity</th>
-                  <th>Reference</th>
-                  <th>Reason</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
-                      Loading stats from API...
-                    </td>
-                  </tr>
-                ) : stats?.recent_transactions && stats.recent_transactions.length > 0 ? (
-                  stats.recent_transactions.map((tx: any) => (
-                    <tr key={tx.transaction_id}>
-                      <td style={{ fontWeight: 700, color: '#818cf8' }}>#{tx.transaction_id}</td>
-                      <td>
-                        <span className={`badge ${tx.transaction_type === 'Stock In' ? 'badge-active' : 'badge-info'}`}>
-                          {tx.transaction_type}
-                        </span>
-                      </td>
-                      <td style={{ fontWeight: 700 }}>{tx.quantity}</td>
-                      <td style={{ color: 'var(--text-muted)' }}>{tx.reference || '-'}</td>
-                      <td style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>{tx.reason || '-'}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-dim)', padding: '2rem' }}>
-                      No recent transactions recorded in database.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            <TableContainer component={Paper} elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Tx ID</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Transaction Type</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Quantity</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Reference</TableCell>
+                    <TableCell sx={{ fontWeight: 700, color: 'text.secondary' }}>Reason</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                        Loading stats from API...
+                      </TableCell>
+                    </TableRow>
+                  ) : stats?.recent_transactions && stats.recent_transactions.length > 0 ? (
+                    stats.recent_transactions.map((tx: any) => (
+                      <TableRow key={tx.transaction_id} hover>
+                        <TableCell sx={{ fontWeight: 700, color: 'primary.main' }}>#{tx.transaction_id}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={tx.transaction_type} 
+                            size="small" 
+                            color={tx.transaction_type === 'Stock In' ? 'success' : 'info'} 
+                            variant="outlined" 
+                            sx={{ fontWeight: 600, fontSize: '0.75rem' }} 
+                          />
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: 700 }}>{tx.quantity}</TableCell>
+                        <TableCell sx={{ color: 'text.secondary' }}>{tx.reference || '-'}</TableCell>
+                        <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>{tx.reason || '-'}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+                        No recent transactions recorded in database.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+        </Grid>
 
         {/* Quick Operations Panel */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>API Operations</h3>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>API Operations</Typography>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button onClick={() => onNavigate?.('assets')} className="btn btn-primary" style={{ width: '100%', justifyContent: 'flex-start' }}>
-              <Plus size={18} /> Register New Asset
-            </button>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Button
+                variant="contained"
+                onClick={() => onNavigate?.('assets')}
+                startIcon={<Plus size={18} />}
+                fullWidth
+                sx={{ justifyContent: 'flex-start', py: 1.2 }}
+              >
+                Register New Asset
+              </Button>
 
-            <button onClick={() => onNavigate?.('inventory')} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
-              <Boxes size={18} color="#06b6d4" /> Record Stock Movement
-            </button>
+              <Button
+                variant="outlined"
+                onClick={() => onNavigate?.('inventory')}
+                startIcon={<Boxes size={18} color="#06b6d4" />}
+                fullWidth
+                sx={{ justifyContent: 'flex-start', py: 1.2, borderColor: 'divider', color: 'text.primary' }}
+              >
+                Record Stock Movement
+              </Button>
 
-            <button onClick={() => onNavigate?.('users')} className="btn btn-secondary" style={{ width: '100%', justifyContent: 'flex-start' }}>
-              <Users size={18} color="#10b981" /> Add User Account
-            </button>
-          </div>
+              <Button
+                variant="outlined"
+                onClick={() => onNavigate?.('users')}
+                startIcon={<Users size={18} color="#10b981" />}
+                fullWidth
+                sx={{ justifyContent: 'flex-start', py: 1.2, borderColor: 'divider', color: 'text.primary' }}
+              >
+                Add User Account
+              </Button>
+            </Box>
 
-          <div style={{
-            marginTop: 'auto',
-            padding: '1rem',
-            background: 'rgba(99, 102, 241, 0.08)',
-            borderRadius: '12px',
-            border: '1px solid rgba(99, 102, 241, 0.2)'
-          }}>
-            <p style={{ fontSize: '0.8rem', color: '#818cf8', fontWeight: 600 }}>Backend Connection Status</p>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-              Connected to <code>http://127.0.0.1:8000/api</code>. Database tables auto-synced.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+            <Box sx={{ mt: 'auto', p: 2, bgcolor: 'var(--kpi-red-bg)', border: 1, borderColor: 'var(--kpi-red-border)', borderRadius: 3 }}>
+              <Typography variant="subtitle2" sx={{ color: '#ff5252', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Sparkles size={14} /> Backend Connection Status
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
+                Connected to <code>http://127.0.0.1:8000/api</code>. Database tables auto-synced.
+              </Typography>
+            </Box>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
   );
 };

@@ -102,7 +102,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             width: '54px',
             height: '54px',
             borderRadius: '16px',
-            background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+            background: '#ff5252',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

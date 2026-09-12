@@ -1,19 +1,34 @@
 import React from 'react';
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import ListSubheader from '@mui/material/ListSubheader';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Avatar from '@mui/material/Avatar';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material';
 import { 
   LayoutDashboard, 
   Package, 
   Boxes, 
+  FileText, 
   Users, 
   ShieldCheck, 
   UserCheck, 
   Building2, 
   Truck, 
-  FileText,
   LogOut,
-  Layers,
   X
 } from 'lucide-react';
 import { canAccessTab } from '../../utils/rbac';
+
+const DRAWER_WIDTH = 260;
 
 interface SidebarProps {
   activeTab: string;
@@ -24,6 +39,17 @@ interface SidebarProps {
   onLogout?: () => void;
 }
 
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: React.ElementType;
+}
+
+interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ 
   activeTab, 
   setActiveTab, 
@@ -32,123 +58,209 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile, 
   onLogout 
 }) => {
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'assets', label: 'Asset Management', icon: Package },
-    { id: 'inventory', label: 'Stock & Inventory', icon: Boxes },
-    { id: 'reports', label: 'Reports & Analytics', icon: FileText },
-    { id: 'users', label: 'User Accounts', icon: Users },
-    { id: 'roles', label: 'Role Management', icon: ShieldCheck },
-    { id: 'employees', label: 'Employees', icon: UserCheck },
-    { id: 'departments', label: 'Departments', icon: Building2 },
-    { id: 'suppliers', label: 'Suppliers', icon: Truck },
-  ];
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  const visibleMenuItems = menuItems.filter(item => canAccessTab(userRole, item.id));
+  const menuSections: MenuSection[] = [
+    {
+      title: 'MAIN',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'assets', label: 'Asset Management', icon: Package },
+        { id: 'inventory', label: 'Stock & Inventory', icon: Boxes },
+        { id: 'reports', label: 'Reports & Analytics', icon: FileText },
+      ]
+    },
+    {
+      title: 'MANAGEMENT',
+      items: [
+        { id: 'users', label: 'User Accounts', icon: Users },
+        { id: 'roles', label: 'Role Management', icon: ShieldCheck },
+        { id: 'employees', label: 'Employees', icon: UserCheck },
+      ]
+    },
+    {
+      title: 'ORGANIZATION',
+      items: [
+        { id: 'departments', label: 'Departments', icon: Building2 },
+        { id: 'suppliers', label: 'Suppliers', icon: Truck },
+      ]
+    }
+  ];
 
   const handleSelectTab = (id: string) => {
     setActiveTab(id);
     if (onCloseMobile) onCloseMobile();
   };
 
-  return (
-    <>
-      {mobileOpen && <div className="sidebar-overlay" onClick={onCloseMobile} />}
-      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
-        {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2.5rem', paddingLeft: '0.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
+  const drawerContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', p: 2 }}>
+      {/* Brand Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, px: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar
+            variant="rounded"
+            sx={{
+              width: 38,
+              height: 38,
+              bgcolor: 'primary.main',
+              fontWeight: 800,
+              fontSize: '1rem',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)'
-            }}>
-              <Layers size={22} color="#ffffff" />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--text-main)', lineHeight: 1.2 }}>
-                Inventra<span style={{ color: '#06b6d4' }}>Admin</span>
-              </h2>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Asset & Inventory v2.0</span>
-            </div>
-          </div>
+              boxShadow: '0 4px 10px rgba(255, 82, 82, 0.3)',
+            }}
+          >
+            IA
+          </Avatar>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.1, color: 'text.primary' }}>
+              Inventra<Box component="span" sx={{ color: 'primary.main' }}>Admin</Box>
+            </Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: '0.05em' }}>
+              Asset & Inventory v2.0
+            </Typography>
+          </Box>
+        </Box>
 
-          {onCloseMobile && (
-            <button
-              onClick={onCloseMobile}
-              className="mobile-menu-btn"
-              style={{ display: 'flex' }}
-            >
-              <X size={20} />
-            </button>
-          )}
-        </div>
+        {!isDesktop && onCloseMobile && (
+          <IconButton onClick={onCloseMobile} size="small">
+            <X size={18} />
+          </IconButton>
+        )}
+      </Box>
 
-      {/* Navigation Menu */}
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', flex: 1 }}>
-        {visibleMenuItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
+      {/* Navigation Sections */}
+      <Box sx={{ flexGrow: 1, overflowY: 'auto' }}>
+        {menuSections.map((section, idx) => {
+          const visibleItems = section.items.filter(item => canAccessTab(userRole, item.id));
+          if (visibleItems.length === 0) return null;
+
           return (
-            <button
-              key={item.id}
-              onClick={() => handleSelectTab(item.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.875rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: isActive 
-                  ? 'linear-gradient(90deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.05) 100%)' 
-                  : 'transparent',
-                color: isActive ? '#818cf8' : '#94a3b8',
-                fontWeight: isActive ? 600 : 500,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                textAlign: 'left',
-                borderLeft: isActive ? '3px solid #6366f1' : '3px solid transparent',
-                transition: 'all 0.2s ease'
-              }}
+            <List
+              key={idx}
+              disablePadding
+              sx={{ mb: 2 }}
+              subheader={
+                <ListSubheader
+                  disableSticky
+                  sx={{
+                    bgcolor: 'transparent',
+                    fontSize: '0.68rem',
+                    fontWeight: 800,
+                    color: 'text.secondary',
+                    letterSpacing: '0.08em',
+                    lineHeight: '24px',
+                    px: 1,
+                    mb: 0.5,
+                  }}
+                >
+                  {section.title}
+                </ListSubheader>
+              }
             >
-              <Icon size={19} color={isActive ? '#818cf8' : '#94a3b8'} />
-              <span>{item.label}</span>
-            </button>
+              {visibleItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+
+                return (
+                  <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton
+                      selected={isActive}
+                      onClick={() => handleSelectTab(item.id)}
+                      sx={{
+                        borderRadius: '10px',
+                        py: 1,
+                        px: 1.5,
+                        '&.Mui-selected': {
+                          bgcolor: 'action.selected',
+                          color: 'primary.main',
+                          fontWeight: 700,
+                          '& .MuiListItemIcon-root': {
+                            color: 'primary.main',
+                          },
+                          '&:hover': {
+                            bgcolor: 'action.selected',
+                          },
+                        },
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 36, color: isActive ? 'primary.main' : 'text.secondary' }}>
+                        <Icon size={18} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={
+                          <Typography sx={{ fontSize: '0.85rem', fontWeight: isActive ? 700 : 500 }}>
+                            {item.label}
+                          </Typography>
+                        }
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
           );
         })}
-      </nav>
+      </Box>
 
-      {/* Footer Info / Logout */}
-      <div style={{ paddingTop: '1.5rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-        <button
+      {/* Footer Info / Logout Button */}
+      <Box sx={{ pt: 2, borderTop: 1, borderColor: 'divider' }}>
+        <Button
+          fullWidth
+          variant="outlined"
+          color="error"
           onClick={onLogout}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            width: '100%',
-            padding: '0.625rem 1rem',
-            background: 'rgba(244, 63, 94, 0.1)',
+          startIcon={<LogOut size={16} />}
+          sx={{
+            py: 1,
+            borderRadius: '10px',
+            bgcolor: 'rgba(244, 63, 94, 0.1)',
+            borderColor: 'rgba(244, 63, 94, 0.25)',
             color: '#fca5a5',
-            border: '1px solid rgba(244, 63, 94, 0.2)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: '0.85rem'
+            '&:hover': {
+              bgcolor: 'rgba(244, 63, 94, 0.2)',
+              borderColor: 'rgba(244, 63, 94, 0.4)',
+            },
           }}
         >
-          <LogOut size={16} />
-          <span>Sign Out</span>
-        </button>
-      </div>
+          Sign Out
+        </Button>
+      </Box>
+    </Box>
+  );
 
-    </aside>
-    </>
+  return (
+    <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
+      {/* Mobile Temporary Drawer */}
+      {!isDesktop ? (
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={onCloseMobile}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      ) : (
+        /* Desktop Permanent Drawer */
+        <Drawer
+          variant="permanent"
+          open
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: DRAWER_WIDTH },
+          }}
+        >
+          {drawerContent}
+        </Drawer>
+      )}
+    </Box>
   );
 };
