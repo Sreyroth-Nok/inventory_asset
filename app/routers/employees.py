@@ -36,7 +36,7 @@ def get_employees(
 def create_employee(
     emp_in: EmployeeCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     # Verify department exists
     dept = db.query(Department).filter(Department.department_id == emp_in.department_id).first()
@@ -69,7 +69,7 @@ def update_employee(
     employee_id: int,
     emp_in: EmployeeUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     emp = db.query(Employee).filter(Employee.employee_id == employee_id).first()
     if not emp:
@@ -97,6 +97,11 @@ def delete_employee(
     emp = db.query(Employee).filter(Employee.employee_id == employee_id).first()
     if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
+    if emp.assignments:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Employee {emp.employee_code} has asset assignment history and cannot be deleted. Set status to 'Inactive' instead."
+        )
     db.delete(emp)
     db.commit()
     return None

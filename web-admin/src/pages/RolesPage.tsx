@@ -82,8 +82,8 @@ export const RolesPage: React.FC = () => {
       try {
         await roleService.deleteRole(id);
         fetchRoles();
-      } catch (err) {
-        alert("Failed to delete role.");
+      } catch (err: any) {
+        alert(err.response?.data?.detail || "Failed to delete role.");
       }
     }
   };

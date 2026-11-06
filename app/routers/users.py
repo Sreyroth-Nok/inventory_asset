@@ -11,6 +11,13 @@ from app.core.dependencies import get_current_user, require_roles
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
+
+def _get_role_or_404(db: Session, role_name: str) -> Role:
+    role_obj = db.query(Role).filter(Role.role_name == role_name).first()
+    if not role_obj:
+        raise HTTPException(status_code=404, detail=f"Role '{role_name}' not found")
+    return role_obj
+
 @router.get("", response_model=List[UserResponse])
 def get_users(
     skip: int = 0,
@@ -45,7 +52,7 @@ def create_user(
         if not emp:
             raise HTTPException(status_code=404, detail=f"Employee with ID {user_in.employee_id} not found")
 
-    role_obj = db.query(Role).filter(Role.role_name == user_in.role).first() if user_in.role else None
+    role_obj = _get_role_or_404(db, user_in.role) if user_in.role else None
 
     user = User(
         employee_id=user_in.employee_id,
@@ -53,7 +60,9 @@ def create_user(
         username=user_in.username,
         password=get_password_hash(user_in.password),
         email=user_in.email,
-        status=user_in.status
+        status=user_in.status,
+        phone=user_in.phone,
+        gender=user_in.gender
     )
     db.add(user)
     db.commit()
@@ -83,9 +92,23 @@ def update_user(
         raise HTTPException(status_code=404, detail="User not found")
     
     update_data = user_in.model_dump(exclude_unset=True)
-    if "password" in update_data and update_data["password"]:
-        update_data["password"] = get_password_hash(update_data["password"])
-        
+    if "password" in update_data:
+        if update_data["password"]:
+            update_data["password"] = get_password_hash(update_data["password"])
+        else:
+            del update_data["password"]  # blank password keeps the current one
+
+    # `role` arrives as a role name; map it to role_id (User.role is a relationship)
+    if "role" in update_data:
+        role_name = update_data.pop("role")
+        if role_name:
+            update_data["role_id"] = _get_role_or_404(db, role_name).role_id
+
+    if "username" in update_data and db.query(User).filter(User.username == update_data["username"], User.user_id != user_id).first():
+        raise HTTPException(status_code=400, detail="Username already registered")
+    if "email" in update_data and db.query(User).filter(User.email == update_data["email"], User.user_id != user_id).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+
     for key, value in update_data.items():
         setattr(user, key, value)
         
@@ -102,6 +125,13 @@ def delete_user(
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    if user.user_id == current_user.user_id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own account")
+    if user.logs or user.assignments_created or user.transactions:
+        raise HTTPException(
+            status_code=400,
+            detail="User has login, assignment or stock history and cannot be deleted. Set status to 'Inactive' instead."
+        )
     db.delete(user)
     db.commit()
     return None

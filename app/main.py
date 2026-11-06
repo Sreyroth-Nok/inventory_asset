@@ -21,8 +21,12 @@ from app.routers import (
     reports_router
 )
 
-# Auto-create tables in database on startup
+# Auto-create tables in database on startup, then add any columns newer
+# versions introduced to tables that already existed
+from app.migrations import run_migrations
+
 Base.metadata.create_all(bind=engine)
+run_migrations(engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

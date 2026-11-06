@@ -39,7 +39,7 @@ def get_inventory_items(
 def create_inventory_item(
     item_in: InventoryItemCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     sup = db.query(Supplier).filter(Supplier.supplier_id == item_in.supplier_id).first()
     if not sup:
@@ -71,7 +71,7 @@ def update_inventory_item(
     inventory_id: int,
     item_in: InventoryItemUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     item = db.query(InventoryItem).filter(InventoryItem.inventory_id == inventory_id).first()
     if not item:
@@ -100,6 +100,11 @@ def delete_inventory_item(
     item = db.query(InventoryItem).filter(InventoryItem.inventory_id == inventory_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Inventory item not found")
+    if item.transactions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Item {item.item_code} has stock transaction history and cannot be deleted. Set status to 'Inactive' instead."
+        )
     db.delete(item)
     db.commit()
     return None

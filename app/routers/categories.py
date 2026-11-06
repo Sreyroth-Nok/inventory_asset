@@ -26,7 +26,7 @@ def get_categories(
 def create_category(
     cat_in: CategoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     category = AssetCategory(**cat_in.model_dump())
     db.add(category)
@@ -50,7 +50,7 @@ def update_category(
     category_id: int,
     cat_in: CategoryUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     cat = db.query(AssetCategory).filter(AssetCategory.category_id == category_id).first()
     if not cat:

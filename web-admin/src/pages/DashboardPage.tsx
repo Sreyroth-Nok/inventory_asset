@@ -15,19 +15,19 @@ import TableBody from '@mui/material/TableBody';
 import Paper from '@mui/material/Paper';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
-import { 
-  Package, 
-  Boxes, 
-  AlertTriangle, 
-  Users, 
-  RefreshCw, 
-  Plus, 
-  ChevronDown, 
-  ArrowUpRight,
+import {
+  Package,
+  Boxes,
+  AlertTriangle,
+  Users,
+  RefreshCw,
+  Plus,
   Sparkles
 } from 'lucide-react';
 import { dashboardService, type DashboardStats } from '../services/dashboardService';
 import { authService } from '../services/authService';
+import { apiClient } from '../services/api';
+import { StockTrendChart, AssetStatusChart } from '../components/dashboard/DashboardCharts';
 
 interface DashboardPageProps {
   onNavigate?: (tab: string) => void;
@@ -37,6 +37,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -45,6 +46,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
       await authService.ensureAuthenticated();
       const data = await dashboardService.getStats();
       setStats(data);
+      setLastUpdated(new Date());
     } catch (err: any) {
       console.error("Failed to fetch dashboard stats:", err);
       setError("Unable to connect to backend API.");
@@ -107,7 +109,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {loading ? <CircularProgress size={20} /> : stats?.asset_summary.total_assets ?? 0}
               </Typography>
               <Typography variant="caption" sx={{ color: '#ff5252', fontWeight: 600, mt: 0.5, display: 'block' }}>
-                {stats?.asset_summary.available_assets || 0} Available in stock
+                {stats?.asset_summary.available_assets || 0} available · {stats?.asset_summary.assigned_assets || 0} assigned
+                {(stats?.asset_summary.overdue_assignments || 0) > 0 && ` · ${stats?.asset_summary.overdue_assignments} overdue`}
               </Typography>
             </CardContent>
           </Card>
@@ -127,7 +130,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {loading ? <CircularProgress size={20} /> : stats?.inventory_summary.total_items ?? 0}
               </Typography>
               <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, mt: 0.5, display: 'block' }}>
-                {stats?.inventory_summary.available_items || 0} In Stock units
+                {stats?.inventory_summary.available_items || 0} items well stocked
               </Typography>
             </CardContent>
           </Card>
@@ -147,7 +150,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 {loading ? <CircularProgress size={20} /> : ((stats?.inventory_summary.low_stock_items || 0) + (stats?.inventory_summary.out_of_stock_items || 0))}
               </Typography>
               <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 600, mt: 0.5, display: 'block' }}>
-                {stats?.inventory_summary.low_stock_items || 0} Low Stock items
+                {stats?.inventory_summary.low_stock_items || 0} low · {stats?.inventory_summary.out_of_stock_items || 0} out of stock
               </Typography>
             </CardContent>
           </Card>
@@ -164,113 +167,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
                 </Box>
               </Box>
               <Typography variant="h4" sx={{ fontWeight: 800, color: 'text.primary' }}>
-                {loading ? <CircularProgress size={20} /> : stats?.total_users ?? 0}
+                {loading ? <CircularProgress size={20} /> : stats?.active_users ?? 0}
               </Typography>
               <Typography variant="caption" sx={{ color: '#06b6d4', fontWeight: 600, mt: 0.5, display: 'block' }}>
-                {stats?.total_employees || 0} Employees registered
+                of {stats?.total_users || 0} accounts · {stats?.total_employees || 0} employees
               </Typography>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      {/* Row 2: Charts Panel */}
+      {/* Row 2: Live charts from /dashboard/stats */}
       <Grid container spacing={2.5}>
-        {/* Sales vs Purchase Bar Chart Container */}
         <Grid size={{ xs: 12, md: 8 }}>
-          <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, height: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>Sales vs Purchase</Typography>
-              <Button size="small" variant="outlined" endIcon={<ChevronDown size={14} />} sx={{ borderColor: 'divider', color: 'text.secondary' }}>
-                This Year
-              </Button>
-            </Box>
-
-            {/* SVG Bar Chart Visualization */}
-            <Box sx={{ position: 'relative', width: '100%', height: 210, mt: 1 }}>
-              {['80k', '60k', '40k', '20k', '0k'].map((label, i) => (
-                <Box key={i} sx={{ position: 'absolute', top: `${(i / 4) * 160}px`, left: 0, right: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="caption" sx={{ width: 28, color: 'text.secondary', textAlign: 'right', fontSize: '0.7rem' }}>{label}</Typography>
-                  <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
-                </Box>
-              ))}
-
-              <Box sx={{ position: 'absolute', left: 40, right: 10, top: 10, bottom: 25, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around' }}>
-                {[
-                  { date: '28 Jan', s: 55, p: 92 },
-                  { date: '29 Jan', s: 92, p: 92 },
-                  { date: '30 Jan', s: 68, p: 68 },
-                  { date: '31 Jan', s: 92, p: 78 },
-                  { date: '1 Feb', s: 74, p: 92 },
-                  { date: '2 Feb', s: 84, p: 86 },
-                  { date: '3 Feb', s: 78, p: 92 },
-                  { date: '4 Feb', s: 68, p: 84 },
-                  { date: '5 Feb', s: 78, p: 89 },
-                ].map((item, idx) => (
-                  <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5, height: '100%', justifyContent: 'flex-end' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: 150 }}>
-                      <Box sx={{ width: 12, height: `${item.s}%`, bgcolor: '#ffaa9b', borderRadius: '3px 3px 0 0' }} />
-                      <Box sx={{ width: 12, height: `${item.p}%`, bgcolor: '#ff5252', borderRadius: '3px 3px 0 0' }} />
-                    </Box>
-                    <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'text.secondary', fontWeight: 500 }}>
-                      {item.date}
-                    </Typography>
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ffaa9b' }} />
-                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Sales</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ff5252' }} />
-                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Purchase</Typography>
-              </Box>
-            </Box>
+          <Card sx={{ p: 2.5, height: '100%' }}>
+            <StockTrendChart data={stats?.stock_trend} loading={loading} />
           </Card>
         </Grid>
-
-        {/* Overall Information Donut Chart Container */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card sx={{ p: 2.5, display: 'flex', flexDirection: 'column', gap: 2, height: '100%', justifyContent: 'space-between' }}>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>Overall Information</Typography>
-                <Button size="small" variant="outlined" endIcon={<ChevronDown size={13} />} sx={{ borderColor: 'divider', color: 'text.secondary', fontSize: '0.75rem' }}>
-                  Last 6 Months
-                </Button>
-              </Box>
-              <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                Customers Overview
-              </Typography>
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 1 }}>
-              <svg width="150" height="150" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="38" fill="none" stroke="var(--border-color)" strokeWidth="14" />
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#f59e0b" strokeWidth="14"
-                  strokeDasharray="75 163" strokeDashoffset="0" transform="rotate(-90 50 50)" strokeLinecap="round" />
-                <circle cx="50" cy="50" r="38" fill="none" stroke="#10b981" strokeWidth="14"
-                  strokeDasharray="110 128" strokeDashoffset="-85" transform="rotate(-90 50 50)" strokeLinecap="round" />
-              </svg>
-            </Box>
-
-            <Grid container spacing={2} sx={{ pt: 1, borderTop: 1, borderColor: 'divider' }}>
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="h5" sx={{ fontWeight: 800 }}>5.5K</Typography>
-                <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600, display: 'block' }}>First Time</Typography>
-                <Chip icon={<ArrowUpRight size={11} />} label="25%" size="small" color="success" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, mt: 0.5 }} />
-              </Grid>
-
-              <Grid size={{ xs: 6 }}>
-                <Typography variant="h5" sx={{ fontWeight: 800 }}>3.5K</Typography>
-                <Typography variant="caption" sx={{ color: '#f59e0b', fontWeight: 600, display: 'block' }}>Return</Typography>
-                <Chip icon={<ArrowUpRight size={11} />} label="21%" size="small" color="warning" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, mt: 0.5 }} />
-              </Grid>
-            </Grid>
+          <Card sx={{ p: 2.5, height: '100%' }}>
+            <AssetStatusChart summary={stats?.asset_summary} loading={loading} />
           </Card>
         </Grid>
       </Grid>
@@ -376,12 +292,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate }) => {
               </Button>
             </Box>
 
-            <Box sx={{ mt: 'auto', p: 2, bgcolor: 'var(--kpi-red-bg)', border: 1, borderColor: 'var(--kpi-red-border)', borderRadius: 3 }}>
-              <Typography variant="subtitle2" sx={{ color: '#ff5252', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Sparkles size={14} /> Backend Connection Status
+            <Box sx={{
+              mt: 'auto', p: 2, borderRadius: 3, border: 1,
+              bgcolor: error ? 'var(--kpi-red-bg)' : 'var(--kpi-green-bg)',
+              borderColor: error ? 'var(--kpi-red-border)' : 'var(--kpi-green-border)',
+            }}>
+              <Typography variant="subtitle2" sx={{ color: error ? '#ff5252' : '#10b981', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Sparkles size={14} /> {loading ? 'Connecting…' : error ? 'Backend Unreachable' : 'Backend Connected'}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
-                Connected to <code>http://127.0.0.1:8000/api</code>. Database tables auto-synced.
+                API: <code>{apiClient.defaults.baseURL}</code>
+                {lastUpdated && !error && <><br />Last updated {lastUpdated.toLocaleTimeString()}</>}
               </Typography>
             </Box>
           </Card>

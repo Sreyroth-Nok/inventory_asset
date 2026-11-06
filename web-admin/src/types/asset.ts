@@ -8,7 +8,7 @@ export interface Asset {
   purchase_date?: string;
   purchase_price?: number | string;
   condition?: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Damaged';
-  status: 'Available' | 'Assigned' | 'Under Maintenance' | 'Retired' | 'Disposed';
+  status: 'Available' | 'Assigned' | 'Under Maintenance' | 'Damaged' | 'Lost' | 'Retired' | 'Disposed';
   description?: string;
   category_name?: string;
   supplier_name?: string;
@@ -18,6 +18,8 @@ export interface Asset {
     employee_code: string;
     employee_name: string;
     assigned_date?: string;
+    expected_return_date?: string | null;
+    is_overdue?: boolean;
     condition_on_assignment?: string;
   };
 }

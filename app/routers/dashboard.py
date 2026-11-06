@@ -1,3 +1,5 @@
+from datetime import date, datetime
+from typing import List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -9,10 +11,41 @@ from app.models.asset import Asset
 from app.models.asset_assignment import AssetAssignment
 from app.models.inventory import InventoryItem
 from app.models.stock_transaction import StockTransaction
-from app.schemas.dashboard import DashboardStatsResponse, AssetStats, InventoryStats
+from app.schemas.dashboard import DashboardStatsResponse, AssetStats, InventoryStats, StockTrendPoint
 from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+
+TREND_MONTHS = 6
+
+
+def _stock_trend(db: Session, months: int) -> List[StockTrendPoint]:
+    """Units moved in / out per calendar month, oldest first, including empty months."""
+    today = date.today()
+    keys = []
+    y, m = today.year, today.month
+    for _ in range(months):
+        keys.append((y, m))
+        y, m = (y - 1, 12) if m == 1 else (y, m - 1)
+    keys.reverse()
+
+    start = datetime(keys[0][0], keys[0][1], 1)
+    totals = {k: {"Stock In": 0, "Stock Out": 0} for k in keys}
+    rows = db.query(StockTransaction).filter(StockTransaction.transaction_date >= start).all()
+    for tx in rows:
+        k = (tx.transaction_date.year, tx.transaction_date.month)
+        if k in totals and tx.transaction_type in totals[k]:
+            totals[k][tx.transaction_type] += tx.quantity
+
+    return [
+        StockTrendPoint(
+            month=f"{y:04d}-{m:02d}",
+            label=date(y, m, 1).strftime("%b %Y"),
+            stock_in=totals[(y, m)]["Stock In"],
+            stock_out=totals[(y, m)]["Stock Out"],
+        )
+        for (y, m) in keys
+    ]
 
 @router.get("/stats", response_model=DashboardStatsResponse)
 def get_dashboard_stats(
@@ -20,6 +53,7 @@ def get_dashboard_stats(
     current_user: User = Depends(get_current_user)
 ):
     total_users = db.query(User).count()
+    active_users = db.query(User).filter(User.status == "Active").count()
     total_employees = db.query(Employee).count()
     total_departments = db.query(Department).count()
     total_suppliers = db.query(Supplier).count()
@@ -36,7 +70,13 @@ def get_dashboard_stats(
         available_assets=available_assets,
         assigned_assets=assigned_assets,
         under_maintenance_assets=under_maintenance_assets,
-        damaged_assets=damaged_assets
+        damaged_assets=damaged_assets,
+        other_assets=total_assets - available_assets - assigned_assets - under_maintenance_assets - damaged_assets,
+        overdue_assignments=db.query(AssetAssignment).filter(
+            AssetAssignment.status == "Assigned",
+            AssetAssignment.expected_return_date.isnot(None),
+            AssetAssignment.expected_return_date < date.today(),
+        ).count(),
     )
 
     # Inventory Stats
@@ -70,6 +110,8 @@ def get_dashboard_stats(
 
     return DashboardStatsResponse(
         total_users=total_users,
+        active_users=active_users,
+        stock_trend=_stock_trend(db, months=TREND_MONTHS),
         total_employees=total_employees,
         total_departments=total_departments,
         total_suppliers=total_suppliers,

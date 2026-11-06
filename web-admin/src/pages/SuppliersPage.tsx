@@ -91,8 +91,8 @@ export const SuppliersPage: React.FC = () => {
       try {
         await supplierService.deleteSupplier(id);
         fetchSuppliers();
-      } catch (err) {
-        alert("Failed to delete supplier. Ensure you have Admin permissions.");
+      } catch (err: any) {
+        alert(err.response?.data?.detail || "Failed to delete supplier. Ensure you have Admin permissions.");
       }
     }
   };

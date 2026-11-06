@@ -46,6 +46,10 @@
   --active-pill-bg: #ffe8e6;
   --active-pill-color: #ff5252;
 
+  /* Dashboard chart series (validated for CVD + contrast on --bg-card) */
+  --viz-stock-in: #2a78d6;
+  --viz-stock-out: #eb6834;
+
   --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.03);
@@ -83,6 +87,9 @@
   --active-pill-bg: rgba(255, 82, 82, 0.2);
   --active-pill-color: #ff7676;
 
+  --viz-stock-in: #3987e5;
+  --viz-stock-out: #d95926;
+
   --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -117,6 +124,10 @@
 
   --active-pill-bg: #ffe8e6;
   --active-pill-color: #ff5252;
+
+  /* Dashboard chart series (validated for CVD + contrast on --bg-card) */
+  --viz-stock-in: #2a78d6;
+  --viz-stock-out: #eb6834;
 
   --shadow-subtle: 0 2px 10px rgba(0, 0, 0, 0.03);
 }

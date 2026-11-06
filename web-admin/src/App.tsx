@@ -20,6 +20,8 @@ import { DepartmentsPage } from './pages/DepartmentsPage';
 import { SuppliersPage } from './pages/SuppliersPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { LoginPage } from './pages/LoginPage';
+import { AboutPage } from './pages/AboutPage';
+import { AssignmentsPage } from './pages/AssignmentsPage';
 import { Modal } from './components/common/Modal';
 import { authService, type UserProfile } from './services/authService';
 import { canAccessTab } from './utils/rbac';
@@ -84,6 +86,7 @@ export const AppContent: React.FC = () => {
     switch (activeTab) {
       case 'dashboard': return 'Executive Dashboard';
       case 'assets': return 'Asset Inventory Management';
+      case 'assignments': return 'Asset Assignments & Returns';
       case 'inventory': return 'Stock & Inventory Control';
       case 'reports': return 'Reports & Audit Analytics';
       case 'users': return 'System User Accounts';
@@ -91,6 +94,7 @@ export const AppContent: React.FC = () => {
       case 'employees': return 'Employee Directory';
       case 'departments': return 'Department Management';
       case 'suppliers': return 'Supplier Management';
+      case 'about': return 'About the System';
       default: return 'Dashboard';
     }
   };
@@ -119,6 +123,7 @@ export const AppContent: React.FC = () => {
     switch (activeTab) {
       case 'dashboard': return <DashboardPage onNavigate={setActiveTab} />;
       case 'assets': return <AssetsPage />;
+      case 'assignments': return <AssignmentsPage />;
       case 'inventory': return <InventoryPage />;
       case 'reports': return <ReportsPage />;
       case 'users': return <UsersPage />;
@@ -126,6 +131,7 @@ export const AppContent: React.FC = () => {
       case 'employees': return <EmployeesPage />;
       case 'departments': return <DepartmentsPage />;
       case 'suppliers': return <SuppliersPage />;
+      case 'about': return <AboutPage />;
       default: return <DashboardPage onNavigate={setActiveTab} />;
     }
   };

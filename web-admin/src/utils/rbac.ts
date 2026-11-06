@@ -1,9 +1,9 @@
 export type UserRoleName = 'Admin' | 'Warehouse Manager' | 'Inventory Staff' | string;
 
 export const ROLE_TABS: Record<string, string[]> = {
-  'Admin': ['dashboard', 'assets', 'inventory', 'reports', 'users', 'roles', 'employees', 'departments', 'suppliers'],
-  'Warehouse Manager': ['dashboard', 'assets', 'inventory', 'reports', 'employees', 'suppliers'],
-  'Inventory Staff': ['dashboard', 'assets', 'inventory', 'reports']
+  'Admin': ['dashboard', 'assets', 'assignments', 'inventory', 'reports', 'users', 'roles', 'employees', 'departments', 'suppliers', 'about'],
+  'Warehouse Manager': ['dashboard', 'assets', 'assignments', 'inventory', 'reports', 'employees', 'suppliers', 'about'],
+  'Inventory Staff': ['dashboard', 'assets', 'assignments', 'inventory', 'reports', 'about']
 };
 
 export const canAccessTab = (roleName?: string, tabId?: string): boolean => {

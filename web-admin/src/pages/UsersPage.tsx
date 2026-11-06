@@ -104,8 +104,8 @@ export const UsersPage: React.FC = () => {
       try {
         await userService.deleteUser(id);
         fetchUsers();
-      } catch (err) {
-        alert("Failed to delete user. Ensure you have Admin permissions.");
+      } catch (err: any) {
+        alert(err.response?.data?.detail || "Failed to delete user. Ensure you have Admin permissions.");
       }
     }
   };

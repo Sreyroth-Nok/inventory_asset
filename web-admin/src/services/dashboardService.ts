@@ -1,7 +1,16 @@
 import { apiClient } from './api';
 
+export interface StockTrendPoint {
+  month: string;
+  label: string;
+  stock_in: number;
+  stock_out: number;
+}
+
 export interface DashboardStats {
   total_users: number;
+  active_users: number;
+  stock_trend: StockTrendPoint[];
   total_employees: number;
   total_departments: number;
   total_suppliers: number;
@@ -11,6 +20,8 @@ export interface DashboardStats {
     assigned_assets: number;
     under_maintenance_assets: number;
     damaged_assets: number;
+    other_assets: number;
+    overdue_assignments: number;
   };
   inventory_summary: {
     total_items: number;

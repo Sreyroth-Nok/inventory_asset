@@ -146,8 +146,8 @@ export const InventoryPage: React.FC = () => {
       try {
         await inventoryService.deleteInventoryItem(id);
         fetchInventory();
-      } catch (err) {
-        alert("Failed to delete inventory item.");
+      } catch (err: any) {
+        alert(err.response?.data?.detail || "Failed to delete inventory item.");
       }
     }
   };

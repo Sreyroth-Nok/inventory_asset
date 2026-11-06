@@ -9,6 +9,8 @@ export interface AssetHistoryReportItem {
   department_name: string;
   assigned_by: string;
   assigned_date: string;
+  expected_return_date: string;
+  is_overdue: boolean;
   condition_on_assignment: string;
   returned_date: string;
   condition_on_return: string;

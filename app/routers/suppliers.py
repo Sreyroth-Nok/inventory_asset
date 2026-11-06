@@ -32,7 +32,7 @@ def get_suppliers(
 def create_supplier(
     sup_in: SupplierCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     supplier = Supplier(**sup_in.model_dump())
     db.add(supplier)
@@ -56,7 +56,7 @@ def update_supplier(
     supplier_id: int,
     sup_in: SupplierUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     sup = db.query(Supplier).filter(Supplier.supplier_id == supplier_id).first()
     if not sup:

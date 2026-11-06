@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, date
 from app.database import Base
 
 class AssetAssignment(Base):
@@ -10,7 +10,8 @@ class AssetAssignment(Base):
     asset_id = Column(Integer, ForeignKey("assets.asset_id"), nullable=False)
     employee_id = Column(Integer, ForeignKey("employees.employee_id"), nullable=False)
     assigned_by = Column(Integer, ForeignKey("users.user_id"), nullable=False)
-    assigned_date = Column(Date, nullable=False, default=datetime.utcnow().date)
+    assigned_date = Column(Date, nullable=False, default=date.today)
+    expected_return_date = Column(Date, nullable=True)  # optional due-back date for loans
     condition_on_assignment = Column(String(30), nullable=True)
     returned_date = Column(Date, nullable=True)
     condition_on_return = Column(String(30), nullable=True)
@@ -23,3 +24,12 @@ class AssetAssignment(Base):
     asset = relationship("Asset", back_populates="assignments")
     employee = relationship("Employee", back_populates="assignments")
     assigner = relationship("User", back_populates="assignments_created", foreign_keys=[assigned_by])
+
+    @property
+    def is_overdue(self) -> bool:
+        """Still out after the expected return date."""
+        return (
+            self.status == "Assigned"
+            and self.expected_return_date is not None
+            and self.expected_return_date < date.today()
+        )

@@ -84,8 +84,8 @@ export const DepartmentsPage: React.FC = () => {
       try {
         await departmentService.deleteDepartment(id);
         fetchDepartments();
-      } catch (err) {
-        alert("Failed to delete department. Ensure you have Admin permissions.");
+      } catch (err: any) {
+        alert(err.response?.data?.detail || "Failed to delete department. Ensure you have Admin permissions.");
       }
     }
   };

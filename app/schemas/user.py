@@ -9,6 +9,8 @@ class UserBase(BaseModel):
     email: str
     role: Optional[str] = "Inventory Staff"
     status: str = "Active"
+    phone: Optional[str] = None
+    gender: Optional[str] = None
 
     @field_validator("role", mode="before")
     @classmethod
@@ -29,6 +31,8 @@ class UserUpdate(BaseModel):
     role: Optional[str] = None
     status: Optional[str] = None
     password: Optional[str] = None
+    phone: Optional[str] = None
+    gender: Optional[str] = None
 
 class UserResponse(UserBase):
     user_id: int

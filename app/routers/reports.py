@@ -38,7 +38,13 @@ def get_asset_history_report(
         query = query.filter(AssetAssignment.asset_id == asset_id)
     if employee_id:
         query = query.filter(AssetAssignment.employee_id == employee_id)
-    if status_filter:
+    if status_filter == "Overdue":
+        query = query.filter(
+            AssetAssignment.status == "Assigned",
+            AssetAssignment.expected_return_date.isnot(None),
+            AssetAssignment.expected_return_date < date.today(),
+        )
+    elif status_filter:
         query = query.filter(AssetAssignment.status == status_filter)
 
     assignments = query.order_by(AssetAssignment.created_at.desc()).all()
@@ -54,6 +60,8 @@ def get_asset_history_report(
             "department_name": assign.employee.department.department_name if assign.employee and assign.employee.department else "-",
             "assigned_by": assign.assigner.username if assign.assigner else "System",
             "assigned_date": str(assign.assigned_date) if assign.assigned_date else "-",
+            "expected_return_date": str(assign.expected_return_date) if assign.expected_return_date else "-",
+            "is_overdue": assign.is_overdue,
             "condition_on_assignment": assign.condition_on_assignment or "Good",
             "returned_date": str(assign.returned_date) if assign.returned_date else "-",
             "condition_on_return": assign.condition_on_return or "-",

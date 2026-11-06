@@ -26,7 +26,7 @@ def get_departments(
 def create_department(
     dept_in: DepartmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager"]))
 ):
     department = Department(**dept_in.model_dump())
     db.add(department)
@@ -50,7 +50,7 @@ def update_department(
     department_id: int,
     dept_in: DepartmentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager"]))
 ):
     dept = db.query(Department).filter(Department.department_id == department_id).first()
     if not dept:

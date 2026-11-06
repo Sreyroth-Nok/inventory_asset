@@ -97,6 +97,7 @@ export const ReportsPage: React.FC = () => {
         { label: 'Department', key: 'department_name' },
         { label: 'Assigned By', key: 'assigned_by' },
         { label: 'Assigned Date', key: 'assigned_date' },
+        { label: 'Expected Return', key: 'expected_return_date' },
         { label: 'Condition on Assign', key: 'condition_on_assignment' },
         { label: 'Returned Date', key: 'returned_date' },
         { label: 'Condition on Return', key: 'condition_on_return' },
@@ -289,6 +290,7 @@ export const ReportsPage: React.FC = () => {
               <option value="">All Statuses</option>
               <option value="Assigned">Currently Assigned</option>
               <option value="Returned">Returned</option>
+              <option value="Overdue">Overdue</option>
             </select>
           )}
 
@@ -407,6 +409,7 @@ export const ReportsPage: React.FC = () => {
                   <th>Employee Name</th>
                   <th>Department</th>
                   <th>Assign Date</th>
+                  <th>Expected Return</th>
                   <th>Condition (Assign)</th>
                   <th>Return Date</th>
                   <th>Condition (Return)</th>
@@ -415,7 +418,7 @@ export const ReportsPage: React.FC = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Loading asset history...</td></tr>
+                  <tr><td colSpan={11} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Loading asset history...</td></tr>
                 ) : filteredAssetHistory.length > 0 ? (
                   filteredAssetHistory.map((item) => (
                     <tr key={item.assignment_id}>
@@ -425,18 +428,19 @@ export const ReportsPage: React.FC = () => {
                       <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{item.employee_name} ({item.employee_code})</td>
                       <td style={{ color: 'var(--text-muted)' }}>{item.department_name}</td>
                       <td>{item.assigned_date}</td>
+                      <td>{item.expected_return_date !== '-' ? item.expected_return_date : <span style={{ color: 'var(--text-dim)', fontStyle: 'italic' }}>Permanent</span>}</td>
                       <td style={{ fontSize: '0.8rem' }}>{item.condition_on_assignment}</td>
                       <td>{item.returned_date || '-'}</td>
                       <td style={{ fontSize: '0.8rem' }}>{item.condition_on_return || '-'}</td>
                       <td>
-                        <span className={`badge ${item.status === 'Assigned' ? 'badge-assigned' : 'badge-available'}`}>
-                          {item.status}
+                        <span className={`badge ${item.is_overdue ? 'badge-danger' : item.status === 'Assigned' ? 'badge-assigned' : 'badge-available'}`}>
+                          {item.is_overdue ? 'Overdue' : item.status}
                         </span>
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan={10} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>No assignment records found.</td></tr>
+                  <tr><td colSpan={11} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-dim)' }}>No assignment records found.</td></tr>
                 )}
               </tbody>
             </table>

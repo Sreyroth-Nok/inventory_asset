@@ -31,7 +31,7 @@ def get_transactions(
 def perform_stock_in(
     payload: StockInRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     """Add stock to inventory item and automatically update quantity & status"""
     item = db.query(InventoryItem).filter(InventoryItem.inventory_id == payload.inventory_id).first()
@@ -62,7 +62,7 @@ def perform_stock_in(
 def perform_stock_out(
     payload: StockOutRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["Admin", "Manager", "Inventory Staff"]))
+    current_user: User = Depends(require_roles(["Admin", "Warehouse Manager", "Inventory Staff"]))
 ):
     """Remove/issue stock from inventory item with insufficient stock validation"""
     item = db.query(InventoryItem).filter(InventoryItem.inventory_id == payload.inventory_id).first()

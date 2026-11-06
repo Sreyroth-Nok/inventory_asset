@@ -8,7 +8,7 @@ A modern, robust, and clean RESTful API for managing organizational assets and b
 
 The system consists of 9 normalized database tables:
 
-1. **`users`**: System users authorized for login (`Admin`, `Inventory Staff`, `Manager`) with hashed passwords and JWT auth.
+1. **`users`**: System users authorized for login (`Admin`, `Warehouse Manager`, `Inventory Staff`) with hashed passwords and JWT auth.
 2. **`departments`**: Organizational departments (`IT`, `HR`, `Finance`, `Marketing`, `Administration`).
 3. **`employees`**: Employees working in departments who can receive physical assets.
 4. **`asset_categories`**: Classification for physical assets (`Laptop`, `Desktop`, `Printer`, `Monitor`, `Projector`).
@@ -74,7 +74,7 @@ python -m uvicorn app.main:app --reload --port 8000
 |---|---|---|
 | Admin | `admin` | `123456` |
 | Inventory Staff | `staff01` | `123456` |
-| Manager | `manager01` | `123456` |
+| Warehouse Manager | `manager01` | `123456` |
 
 ---
 

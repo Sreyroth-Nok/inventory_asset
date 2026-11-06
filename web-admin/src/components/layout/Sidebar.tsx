@@ -24,6 +24,8 @@ import {
   Building2, 
   Truck, 
   LogOut,
+  Info,
+  ArrowLeftRight,
   X
 } from 'lucide-react';
 import { canAccessTab } from '../../utils/rbac';
@@ -67,6 +69,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { id: 'assets', label: 'Asset Management', icon: Package },
+        // { id: 'assignments', label: 'Asset Assignments', icon: ArrowLeftRight },
         { id: 'inventory', label: 'Stock & Inventory', icon: Boxes },
         { id: 'reports', label: 'Reports & Analytics', icon: FileText },
       ]
@@ -84,6 +87,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'departments', label: 'Departments', icon: Building2 },
         { id: 'suppliers', label: 'Suppliers', icon: Truck },
+      ]
+    },
+    {
+      title: 'SYSTEM',
+      items: [
+        { id: 'about', label: 'About & Architecture', icon: Info },
       ]
     }
   ];
@@ -114,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </Avatar>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.1, color: 'text.primary' }}>
-              Inventra<Box component="span" sx={{ color: 'primary.main' }}>Admin</Box>
+              F4-option<Box component="span" sx={{ color: 'primary.main' }}> Admin</Box>
             </Typography>
             <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', letterSpacing: '0.05em' }}>
               Asset & Inventory v2.0

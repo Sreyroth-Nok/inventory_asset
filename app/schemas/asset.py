@@ -38,6 +38,8 @@ class AssignedEmployeeInfo(BaseModel):
     employee_code: str
     employee_name: str
     assigned_date: Optional[date] = None
+    expected_return_date: Optional[date] = None
+    is_overdue: bool = False
     condition_on_assignment: Optional[str] = None
 
 class AssetResponse(AssetBase):

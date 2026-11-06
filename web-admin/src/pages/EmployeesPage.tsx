@@ -109,8 +109,8 @@ export const EmployeesPage: React.FC = () => {
       try {
         await employeeService.deleteEmployee(id);
         fetchData();
-      } catch (err) {
-        alert("Failed to delete employee.");
+      } catch (err: any) {
+        alert(err.response?.data?.detail || "Failed to delete employee.");
       }
     }
   };

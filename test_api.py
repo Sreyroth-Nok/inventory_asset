@@ -1,4 +1,11 @@
-import asyncio
+# Runs against a temporary, freshly seeded SQLite database so the real
+# database (PostgreSQL or ./inventory.db) is never modified.
+import os
+import tempfile
+
+os.environ["DATABASE_URL"] = "sqlite:///" + os.path.join(tempfile.mkdtemp(prefix="inventory_test_api_"), "test.db")
+
+import seed
 from app.database import SessionLocal
 from app.models.user import User
 from app.models.asset import Asset
@@ -9,6 +16,7 @@ from app.core.security import verify_password, get_password_hash, create_access_
 
 def test_backend_logic():
     print("=== Testing Backend Logic & Database Integrity ===")
+    seed.seed_database()
     db = SessionLocal()
     try:
         # 1. Test Password verification
